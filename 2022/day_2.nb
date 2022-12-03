@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     10837,        306]
-NotebookOptionsPosition[      9244,        270]
-NotebookOutlinePosition[      9683,        287]
-CellTagsIndexPosition[      9640,        284]
+NotebookDataLength[     13396,        366]
+NotebookOptionsPosition[     11709,        329]
+NotebookOutlinePosition[     12148,        346]
+CellTagsIndexPosition[     12105,        343]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -148,75 +148,134 @@ Cell["Part 2", "Section",
 
 Cell[BoxData[{
  RowBox[{"Clear", "[", 
-  RowBox[{"beatsGraph", ",", "beatsMat", ",", "losesMat"}], 
-  "]"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"(*", 
-   RowBox[{"beatsGraph", "="}], "*)"}], 
-  RowBox[{"Graph", "[", 
-   RowBox[{
-    RowBox[{"{", 
-     RowBox[{
-      RowBox[{"\"\<C\>\"", "\[DirectedEdge]", "\"\<B\>\""}], ",", 
-      RowBox[{"\"\<B\>\"", "\[DirectedEdge]", "\"\<A\>\""}], ",", 
-      RowBox[{"\"\<A\>\"", "\[DirectedEdge]", "\"\<C\>\""}]}], "}"}], ",", 
-    RowBox[{"VertexWeight", "->", 
-     RowBox[{"{", 
-      RowBox[{"3", ",", "2", ",", "1"}], "}"}]}], ",", 
-    RowBox[{"EdgeWeight", "->", 
-     RowBox[{"{", 
-      RowBox[{"6", ",", "6", ",", "6"}], "}"}]}], ",", 
-    RowBox[{"VertexLabels", "->", "\"\<Index\>\""}]}], 
-   "]"}]}], "\[IndentingNewLine]", 
- RowBox[{
   RowBox[{
-   RowBox[{"WeightedAdjacencyMatrix", "@", "%"}], "//", "Normal"}], 
-  "\[IndentingNewLine]", 
-  RowBox[{"(*", 
-   RowBox[{"AnnotationValue", "[", 
+  "\"\<verterxWeight*\>\"", ",", "\"\<Global`*Edges\>\"", ",", 
+   "\"\<beatsGraph\>\""}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"verterxWeightMatrix", "=", 
+   RowBox[{"ConstantArray", "[", 
     RowBox[{
      RowBox[{"{", 
-      RowBox[{"%%", ",", "3"}], "}"}], ",", "VertexWeight"}], "]"}], 
-   "*)"}]}], "\[IndentingNewLine]", 
+      RowBox[{"3", ",", "2", ",", "1"}], "}"}], ",", "3"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"IncidenceMatrix", "@", "%%"}], "//", 
-  "MatrixForm"}], "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"vertexWeightList", "=", 
+    RowBox[{"Diagonal", "@", "veterxWeightMatrix"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"(*", 
+  RowBox[{"stateWeight", "=", 
+   RowBox[{"<|", 
+    RowBox[{
+     RowBox[{"\"\<win\>\"", "->", "6"}], ",", 
+     RowBox[{"\"\<draw\>\"", "->", "3"}], ",", 
+     RowBox[{"\"\<lose\>\"", "->", "0"}]}], "|>"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"winEdges", "=", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"\"\<C\>\"", "\[DirectedEdge]", "\"\<B\>\""}], ",", 
+     RowBox[{"\"\<B\>\"", "\[DirectedEdge]", "\"\<A\>\""}], ",", 
+     RowBox[{"\"\<A\>\"", "\[DirectedEdge]", "\"\<C\>\""}]}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"weightedWinEdges", "=", 
    RowBox[{
-    RowBox[{"beatsMat", "=", 
+    RowBox[{"winEdges", "->", 
+     RowBox[{"stateWeight", "@", "\"\<win\>\""}]}], "//", "Thread"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"selfEdges", "=", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"\"\<C\>\"", "\[DirectedEdge]", "\"\<C\>\""}], ",", 
+     RowBox[{"\"\<B\>\"", "\[DirectedEdge]", "\"\<B\>\""}], ",", 
+     RowBox[{"\"\<A\>\"", "\[DirectedEdge]", "\"\<A\>\""}]}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"weightedSelfEdges", "=", 
+   RowBox[{
+    RowBox[{"selfEdges", "->", 
+     RowBox[{"stateWeight", "@", "\"\<draw\>\""}]}], "//", "Thread"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"loseEdges", "=", 
+   RowBox[{"Reverse", "/@", "winEdges"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"weightedLoseEdges", "=", 
+   RowBox[{
+    RowBox[{"loseEdges", "->", 
+     RowBox[{"stateWeight", "@", "\"\<lose\>\""}]}], "//", "Thread"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"edgeList", "=", 
+   RowBox[{"Join", "[", 
+    RowBox[{"winEdges", ",", "selfEdges", ",", "loseEdges"}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"edgeWeightList", "=", 
+    RowBox[{"Join", "[", 
      RowBox[{
-      RowBox[{"beatsGraph", "//", "AdjacencyMatrix"}], "//", "Normal"}]}], 
-    ";", "\[IndentingNewLine]", 
-    RowBox[{"losesMat", "=", 
-     RowBox[{
-      RowBox[{
-       RowBox[{"ReverseGraph", "@", "beatsGraph"}], "//", "AdjacencyMatrix"}],
-       "//", "Normal"}]}], ";"}], "*)"}]}]}], "Input",
+     "weightedWinEdges", ",", "weightedSelfEdges", ",", "weightedLoseEdges"}],
+      "]"}]}], ";"}], "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{"rpsGraph", "=", 
+  RowBox[{"Graph", "[", "\[IndentingNewLine]", 
+   RowBox[{"edgeList", ",", "\[IndentingNewLine]", 
+    RowBox[{"VertexWeight", "->", "vertexWeightList"}], ",", 
+    "\[IndentingNewLine]", 
+    RowBox[{"EdgeWeight", "->", "edgeWeightList"}], ",", 
+    "\[IndentingNewLine]", 
+    RowBox[{"EdgeLabels", "->", "\"\<EdgeWeight\>\""}], ",", 
+    "\[IndentingNewLine]", 
+    RowBox[{"VertexLabels", "->", "\"\<VertexWeight\>\""}]}], 
+   "\[IndentingNewLine]", "]"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"rpsMat", "=", 
+   RowBox[{"verterxWeightMatrix", "+", 
+    RowBox[{"Normal", "@", 
+     RowBox[{"WeightedAdjacencyMatrix", "@", "rpsGraph"}]}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"MatrixForm", "@", "rpsMat"}]}], "Input",
  CellChangeTimes->CompressedData["
-1:eJxTTMoPSmViYGAQBmIQHeLXsHTGszeOfdzhW0B0ye7P90E0v9b/RyDae/ba
-l2D5L4/egugci3+/QPS3R8J/QXSuZgLrTCB9X2ASF4i2betXBdGXHTo0QfSz
-M5r6IHqNc70BmC/+ygREGzU32oDon7+ZHEF0KperJ4jOPzhx6WwgfWrJ/GUg
-Ou5d5BYQbaG//QiIfndowi0QHSlu/QBEO/11egKiBZ6rPgXReoZJX0G0rGjo
-PxD97XkE2xwg3fZcnx1Efwt/LAGiZ+T0SIHoey4vdEH08aWpeiBaqk3NBETL
-2r+0ANHOEbvsQPQK9lWuIBoAeUuyvA==
+1:eJwd0FtIkwEYxvEhpWDgRiWL0TpcbGxCWwcvJi1tTgOpJKLwQNmQVotWCyov
+RMgZbV00NetiMjWWW0QpGGlmsSAzBxGB1ZXUrHlYXyxB+lplaX3/7+Llx/M8
+d+/mes9BZ5ZCoTBIh4cqm6PBubStdVXVIF54+n0KlQX/krg31C/Iu5j8hm7L
+8iJmkmuW8IzRsbJTckrVkYu7fG06fLf7qhHnXhvN2Ge/tFXO6q+FuP2y14q/
+/2TZ0JlbXoGe59ejIclXkVt3sG6+ZhAt5uExnB9tn8Qa9c5PWLpUOoOqlG4W
+Tdvqf6A2//AyZlLV2V2SvpQ5BzNV0+sw6L6mwUTZly0YjzpNqPHpC1FbIljQ
+Xv2kGO/m3CtHva7MG8aR+358U7EpgMMt1m7ULboSaOgvmsUjSr+ArTOeNJqM
+/gXsu6hV3paczBszoPXYhGylumEH9uz/LJt9SrDho66HR9F+Y8VJuW+72YB5
+EVcjrg78kj37INGMojg0gC3vR2N4Ll/7AlPOD3F0LISn8fhIgYjjL0XZid5u
+VS//9m/cgG+FmB4f7xOLcGDoWQmmNWv34E9b7YmIZFPjeRf+TQW9uP5A7AoW
+h+MB/Hg61I7jdU2d2OFw9+B/oW57GQ==
   "],
  CellLabel->
-  "In[277]:=",ExpressionUUID->"0dfc353b-e220-42c9-a3d6-ba641f096182"],
+  "In[538]:=",ExpressionUUID->"0dfc353b-e220-42c9-a3d6-ba641f096182"],
 
 Cell[BoxData[{
  RowBox[{"Clear", "@", "vectorize"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"vectorize", "=", 
-   RowBox[{"Association", "@", 
-    RowBox[{"Thread", "[", 
-     RowBox[{
-      RowBox[{"{", 
-       RowBox[{"\"\<A\>\"", ",", "\"\<B\>\"", ",", "\"\<C\>\""}], "}"}], "->", 
-      RowBox[{"IdentityMatrix", "[", "3", "]"}]}], "]"}]}]}], ";"}]}], "Input",
- CellChangeTimes->{{3.879000118164137*^9, 3.8790001678603616`*^9}},
+   RowBox[{"AssociationThread", "[", 
+    RowBox[{
+     RowBox[{"VertexList", "@", "rpsGraph"}], "->", 
+     RowBox[{"IdentityMatrix", "[", "3", "]"}]}], "]"}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.879000118164137*^9, 3.8790001678603616`*^9}, 
+   3.879013788780117*^9, {3.8790207121967525`*^9, 3.8790207150229406`*^9}},
  CellLabel->
-  "In[148]:=",ExpressionUUID->"1777ebc4-3711-47b1-8d1f-a0adc4bcc11f"],
+  "In[555]:=",ExpressionUUID->"1777ebc4-3711-47b1-8d1f-a0adc4bcc11f"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"vectorize", "@", "\"\<B\>\""}], ".", "beatsMat", ".", 
+  RowBox[{"vectorize", "@", "\"\<A\>\""}]}]], "Input",
+ CellChangeTimes->{{3.879014827569166*^9, 3.87901483332191*^9}, {
+   3.8790201926106205`*^9, 3.879020197259587*^9}, 3.8790207513363256`*^9, {
+   3.8790211213042383`*^9, 3.8790211392745037`*^9}},
+ CellLabel->
+  "In[559]:=",ExpressionUUID->"0706d062-309d-462b-b88c-7836d2ba6ec6"],
 
 Cell[BoxData[{
  RowBox[{"input", "/.", 
@@ -303,9 +362,10 @@ Cell[4158, 129, 339, 8, 23, "Input",ExpressionUUID->"3f7b7481-6df8-4b05-b9e5-2db
 }, Open  ]],
 Cell[CellGroupData[{
 Cell[4546, 143, 153, 3, 57, "Section",ExpressionUUID->"93493e00-09ae-40e3-918c-1dbfcf0cdb32"],
-Cell[4702, 148, 2047, 56, 123, "Input",ExpressionUUID->"0dfc353b-e220-42c9-a3d6-ba641f096182"],
-Cell[6752, 206, 520, 12, 41, "Input",ExpressionUUID->"1777ebc4-3711-47b1-8d1f-a0adc4bcc11f"],
-Cell[7275, 220, 1941, 46, 41, "Input",ExpressionUUID->"97a48167-9ee5-4ffc-8f00-ad741f93ee3a"]
+Cell[4702, 148, 4084, 106, 385, "Input",ExpressionUUID->"0dfc353b-e220-42c9-a3d6-ba641f096182"],
+Cell[8789, 256, 523, 11, 41, "Input",ExpressionUUID->"1777ebc4-3711-47b1-8d1f-a0adc4bcc11f"],
+Cell[9315, 269, 422, 8, 23, "Input",ExpressionUUID->"0706d062-309d-462b-b88c-7836d2ba6ec6"],
+Cell[9740, 279, 1941, 46, 41, "Input",ExpressionUUID->"97a48167-9ee5-4ffc-8f00-ad741f93ee3a"]
 }, Open  ]]
 }, Open  ]]
 }
