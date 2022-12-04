@@ -1,0 +1,120 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 10.1' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      3333,        111]
+NotebookOptionsPosition[      2780,         86]
+NotebookOutlinePosition[      3124,        101]
+CellTagsIndexPosition[      3081,         98]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Advent of Code Day 4", "Title",
+ CellChangeTimes->{{3.879138198316975*^9, 3.879138202068977*^9}}],
+
+Cell[CellGroupData[{
+
+Cell["Input Parsing", "Section",
+ CellChangeTimes->{{3.8791382061170397`*^9, 3.8791382079610395`*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"SetDirectory", "@", 
+   RowBox[{"NotebookDirectory", "[", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"input", "=", 
+   RowBox[{"StringSplit", "[", 
+    RowBox[{
+     RowBox[{"StringSplit", "[", 
+      RowBox[{
+       RowBox[{"Import", "[", 
+        RowBox[{"FileNameJoin", "[", 
+         RowBox[{"{", 
+          RowBox[{
+           RowBox[{"Directory", "[", "]"}], ",", "\"\<day_4_input.txt\>\""}], 
+          "}"}], "]"}], "]"}], ",", "\"\<\\n\>\""}], "]"}], ",", 
+     "\"\<,\>\""}], "]"}]}], ";"}]}], "Input",
+ InitializationCell->True,
+ CellChangeTimes->{{3.878958831041391*^9, 3.8789589478749633`*^9}, {
+  3.879136388855034*^9, 3.8791364058397245`*^9}, {3.8791364537456665`*^9, 
+  3.8791364695606613`*^9}, {3.8791365427525673`*^9, 3.879136547035804*^9}, {
+  3.879137410804948*^9, 3.8791374109447603`*^9}, {3.87913745867164*^9, 
+  3.879137470589065*^9}},
+ ExpressionUUID -> "80f38ad0-c3cb-43e6-a467-f90d3f6a8bc6"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Part 1", "Section",
+ CellChangeTimes->{{3.8791382119010897`*^9, 3.879138212777089*^9}}],
+
+Cell[BoxData[
+ ButtonBox["IntervalMemberQ",
+  BaseStyle->"InformationLink",
+  ButtonData:>{"Info3879108218-4813956", {"IntervalMemberQ", "System`"}},
+  ButtonNote->"System`"]], "Input"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"StringReplace", "[", 
+    RowBox[{"#", ",", 
+     RowBox[{
+      RowBox[{"n1__", "~~", "\"\<-\>\"", "~~", "n2__"}], "\[RuleDelayed]", 
+      RowBox[{"ToExpression", "/@", 
+       RowBox[{"{", 
+        RowBox[{"n1", ",", "n2"}], "}"}]}]}]}], "]"}], "&"}], "/@", 
+  "input"}]], "Input",
+ CellChangeTimes->{{3.879137111559782*^9, 3.87913711202139*^9}, {
+  3.879137159372382*^9, 3.879137225108283*^9}, {3.879137300954315*^9, 
+  3.8791373252092347`*^9}, {3.8791373868973026`*^9, 3.8791373937331867`*^9}, {
+  3.8791374828377376`*^9, 3.8791374899061575`*^9}, {3.879137595751766*^9, 
+  3.879137627476437*^9}}]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{1704, 1358},
+WindowMargins->{{-7, Automatic}, {Automatic, 0}},
+FrontEndVersion->"10.1 for Microsoft Windows (64-bit) (March 23, 2015)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 103, 1, 90, "Title"],
+Cell[CellGroupData[{
+Cell[708, 27, 102, 1, 63, "Section"],
+Cell[813, 30, 970, 23, 52, "Input",
+ InitializationCell->True]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[1820, 58, 93, 1, 63, "Section"],
+Cell[1916, 61, 185, 4, 31, "Input"],
+Cell[2104, 67, 648, 15, 31, "Input"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
