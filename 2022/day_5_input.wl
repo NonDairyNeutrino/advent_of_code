@@ -503,7 +503,7 @@ move 4 from 6 to 4
 move 10 from 6 to 1";
 
 
-stackList = CreateDataStructure["Stack",#] & /@ Characters@{"FLMW","FMVZB","QLSRVH","JTMPQVSF","WSL","WJRMPVF","FRNPCQJ","BRWZSPHV","WZHGCJMB"};
+stackList = CreateDataStructure["Stack",Reverse@#] & /@ Characters@{"FLMW","FMVZB","QLSRVH","JTMPQVSF","WSL","WJRMPVF","FRNPCQJ","BRWZSPHV","WZHGCJMB"};
 
 
 moveList=Association@@Rule@@@Partition[#,2]&/@ImportString[data]//Dataset
