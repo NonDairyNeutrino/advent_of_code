@@ -1,62 +1,53 @@
 # Advent of Code 2022, day 2
+@enum Shape rock = 1 paper = 2 scissors = 3
+@enum State lose = 0 draw  = 3 win      = 6
 
 """
-The main idea is to first parse the input into a vector of Game objects. Then add all their scoreGame values.
-"""
+    rps(shapeTheirs :: Shape, shapeYours :: Shape)
 
-mutable struct Game
-    shapeOpp :: Char # opponent's shape
-    shapeYou :: Char # your shape
-    scoreYou :: Int  # the score for your shape
-    scoreGame :: Int # the score for the state of the game (e.g. L, D, W)
-    state :: Char    # the state of the game lose = L, draw = D, win = W
-end
-
-
-"""
-    shapeToScore(shape :: Char)
-
-Get the score associated with your shape.
+Determines the win state for a given game of rock, paper, scissors.
 
 Examples
 ========
 ```jldoctest
-julia> shapeToScore('X')
-1
+julia> rps(rock, paper)
+lose
 
-julia> shapeToScore('Y')
-2
+julia> rps(scissors, paper)
+win
 
-julia> shapeToScore('Z')
-3
+julia> rps(paper, paper)
+draw
 ```
+See also: Shape
 """
-function shapeToScore(shape :: Char)
-    if shape == 'X'
-        score = 1
-    elseif shape == 'Y'
-        score = 2
-    elseif shape == 'Z'
-        score = 3
-    end
-    return score
+function rps(shapeTheirs :: Shape, shapeYours :: Shape)
+    stateMatrix = [[draw, win, lose], [lose, draw, win], [win, lose, draw]] |> stack |> permutedims
+    state = stateMatrix[Int(shapeTheirs), Int(shapeYours)]
+    return state
 end
 
-"""
-    getGameState(game :: Game)
-
-TBW
-"""
-function getGameState(game :: Game)
-    if game.shapeOpp == 'A'
-        if game.shapeYou == 'X'
-            game.state = 'D'
-            game.scoreGame =
-        end
+struct Game
+    shapeOpp :: Shape # opponent's shape
+    shapeYou :: Shape # your shape
+    scoreYou :: Int   # the score for your shape
+    state    :: State # the state of the game lose, draw, win
+    scoreGame:: Int   # the score for the state of the game
+    function Game(shapeOpp :: Shape, shapeYou :: Shape)
+        scoreYou = Int(shapeYou)
+        state    = rps(shapeOpp, shapeYou)
+        scoreGame= Int(state)
+        new(shapeOpp, shapeYou, scoreYou, state, scoreGame)
     end
 end
+
+const letterToShape = Dict('A' => rock, 'X' => rock, 'B' => paper, 'Y' => paper, 'C' => scissors, 'Z' => scissors)
 
 function main()
-    # begin parsing input to data structure
-    roundVector = readlines("day2/input2.txt")
+    shapePairVector = [[letterToShape[game[1]], letterToShape[game[3]]] for game in eachline("day2/input2.txt")]
+    gameVector = [Game(shapePair...) for shapePair in shapePairVector]
+    totalPoints = sum(game.scoreYou + game.scoreGame for game in gameVector)
+    return totalPoints
 end
+
+main() |> println
