@@ -21,10 +21,16 @@ draw
 ```
 See also: Shape
 """
-function rps(shapeTheirs :: Shape, shapeYours :: Shape)
+function rpsShape(shapeTheirs :: Shape, shapeYours :: Shape)
     stateMatrix = [[draw, win, lose], [lose, draw, win], [win, lose, draw]] |> stack |> permutedims
     state = stateMatrix[Int(shapeTheirs), Int(shapeYours)]
     return state
+end
+
+function rpsState(shapeTheirs :: Shape, state :: State)
+    shapeMatrix = [[scissors, rock, paper], [rock, paper, scissors], [paper, scissors, rock]] |> stack |> permutedims
+    shapeYours  = shapeMatrix[Int(shapeTheirs), Int(Int(state) / 3) + 1]
+    return shapeYours
 end
 
 struct Game
@@ -35,17 +41,24 @@ struct Game
     scoreGame:: Int   # the score for the state of the game
     function Game(shapeOpp :: Shape, shapeYou :: Shape)
         scoreYou = Int(shapeYou)
-        state    = rps(shapeOpp, shapeYou)
+        state    = rpsShape(shapeOpp, shapeYou)
         scoreGame= Int(state)
+        new(shapeOpp, shapeYou, scoreYou, state, scoreGame)
+    end
+    function Game(shapeOpp :: Shape, state :: State)
+        shapeYou = rpsState(shapeOpp, state)
+        scoreYou = Int(shapeYou)
+        scoreGame = Int(state)
         new(shapeOpp, shapeYou, scoreYou, state, scoreGame)
     end
 end
 
-const letterToShape = Dict('A' => rock, 'X' => rock, 'B' => paper, 'Y' => paper, 'C' => scissors, 'Z' => scissors)
+const letterToShape = Dict('A' => rock, 'B' => paper, 'C' => scissors)
+const letterToState = Dict('X' => lose, 'Y' => draw,  'Z' => win)
 
 function main()
-    shapePairVector = [[letterToShape[game[1]], letterToShape[game[3]]] for game in eachline("day2/input2.txt")]
-    gameVector = [Game(shapePair...) for shapePair in shapePairVector]
+    shapeStateVector = [[letterToShape[game[1]], letterToState[game[3]]] for game in eachline("day2/input2.txt")]
+    gameVector = [Game(shapePair...) for shapePair in shapeStateVector]
     totalPoints = sum(game.scoreYou + game.scoreGame for game in gameVector)
     return totalPoints
 end
