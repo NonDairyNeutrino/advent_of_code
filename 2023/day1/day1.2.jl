@@ -16,19 +16,22 @@ function fromDigits(digitVector :: Vector{Int}, base :: Int = 10)
     return sum(digitVector[end - k + 1] * base^(k-1) for k in 1:length(digitVector))
 end
 
-calibrationSum = 0
-for line in eachline("input.txt")
-    numVector = []
-    for head in 1:length(line)
-        for tail in 1:length(line)
-            substring = SubString(line, head:tail) |> string
-            if substring in union(numStringSet, numDigitSet)
-                push!(numVector, substring)
-                break
+function main()
+    calibrationSum = 0
+    for line in eachline("input.txt")
+        numVector = []
+        for head in 1:length(line)
+            for tail in head:length(line)
+                substring = line[head:tail]
+                if substring in union(numStringSet, numDigitSet)
+                    push!(numVector, substring)
+                    break
+                end
             end
         end
+        calibrationSum += stringToNum.(numVector[[1, end]]) |> fromDigits
     end
-    global calibrationSum += stringToNum.(numVector[[1, end]]) |> fromDigits
+    return calibrationSum
 end
 
-println(calibrationSum)
+main() |> println
