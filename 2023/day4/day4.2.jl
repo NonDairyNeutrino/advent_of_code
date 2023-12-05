@@ -1,25 +1,32 @@
 # Advent of Code day 4 part 1
-struct Card
+mutable struct Card
     id       :: Int
     winCount :: Int
+    instanceCount :: Int
     function Card(cardString :: String)
         idString, winString, yourString = strip.(split(cardString, r"[:|]"))
         id       = parse(Int, split(idString)[2])
         winSet   = (char -> parse(Int, char)).(split(winString)) |> Set
         yourSet  = (char -> parse(Int, char)).(split(yourString)) |> Set
         winCount = intersect(winSet, yourSet) |> length
-        return new(id, winCount)
+        return new(id, winCount, 0) # initialize instanceCount at 0 to only count during tree traversal
     end
     function Card(id :: Vector{Int}, winCount :: Int)
         return new(id, winCount)
     end
 end
 
-mutable struct Node
-    value :: Vector{Int} # vector of card IDs representing the path to the node in the tree
+struct Node
+    card :: Card
     childVector :: Vector{Node}
-    function Node(value :: Vector{Int}, childVector = Node[])
-        return new(value, childVector)
+    function Node(card :: Card)
+        if card.winCount != 0
+            winningIDRange = card.id .+ (1 : card.winCount)
+            childVector = Node.(cardVector[winningIDRange])
+        else
+            childVector = Node[]
+        end
+        return new(card, childVector)
     end
 end
 
@@ -32,13 +39,28 @@ function buildCardVector(path :: String) :: Vector{Card}
     return Card.(readlines(path))
 end
 
-function main(path :: String)
-    cardVector = buildCardVector(path) # cardVector is a seperate object to be referenced
-    card = cardVector[1] # for card in cardVector
-
-    root = Node([card.id])
-    winningIDVector = (root.value)[end] .+ (1 : cardVector[(root.value)[end]].winCount)
-    root.childVector = [Node([root.value...; winnerID]) for winnerID in winningIDVector]
+function isLeaf(node :: Node)
+    return node.childVector === Node[]
 end
 
-main("input_test.txt") |> display
+function traverse!(root :: Node)
+    if isLeaf(root)
+        root.card.instanceCount += 1
+        return 
+    else
+        root.card.instanceCount += 1
+        traverse!.(root.childVector)
+    end
+end
+
+function main()
+     # cardVector is a seperate object to be referenced
+    #= card = cardVector[1] =# for card in cardVector
+        root = Node(card)
+        traverse!(root)
+    end
+    sum(card.instanceCount for card in cardVector)
+end
+
+const cardVector = buildCardVector("input.txt")
+main() |> display
