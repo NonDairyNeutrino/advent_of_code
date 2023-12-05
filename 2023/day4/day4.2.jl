@@ -39,28 +39,47 @@ function buildCardVector(path :: String) :: Vector{Card}
     return Card.(readlines(path))
 end
 
-function isLeaf(node :: Node)
+"""
+    isLeaf(node :: Node) :: Bool
+
+Determine if a node is a leaf.
+"""
+function isLeaf(node :: Node) :: Bool
     return node.childVector === Node[]
 end
 
-function traverse!(root :: Node)
+"""
+    incrementInstance!(card :: Card) :: Nothing
+
+Increment the instance count for the given card.
+"""
+function incrementInstance!(card :: Card) :: Nothing
+    card.instanceCount += 1
+    return nothing
+end
+
+"""
+    traverse!(foo :: Function, root :: Node)
+
+Traverse the tree in pre-order, evaluating foo at each node.
+"""
+function traverse!(foo :: Function, root :: Node)
     if isLeaf(root)
-        root.card.instanceCount += 1
+        foo(root.card)
         return 
     else
-        root.card.instanceCount += 1
-        traverse!.(root.childVector)
+        foo(root.card)
+        traverse!.(foo, root.childVector)
     end
 end
 
 function main()
-     # cardVector is a seperate object to be referenced
-    #= card = cardVector[1] =# for card in cardVector
+    for card in cardVector
         root = Node(card)
-        traverse!(root)
+        traverse!(incrementInstance!, root)
     end
     sum(card.instanceCount for card in cardVector)
 end
 
-const cardVector = buildCardVector("input.txt")
+const cardVector = buildCardVector("input_test.txt")
 main() |> display
