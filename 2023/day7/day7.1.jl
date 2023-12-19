@@ -1,5 +1,17 @@
 const cardStrengthDict = Dict("A" => 13, "K" => 12, "Q" => 11, "J" => 10, "T" => 9, "9" => 8, "8" => 7, "7" => 6, "6" => 5, "5" => 4, "4" => 3, "3" => 2, "2" => 1)
 
+"""
+    Card(cardValue :: String)
+
+Give a card object with its value and strength.
+
+# Examples
+```jldoctest
+julia> Card("A")
+Card("A", 13)
+```
+See also: `cardStrengthDict`
+"""
 struct Card
     value :: String
     strength :: Int
@@ -8,19 +20,64 @@ struct Card
     end
 end
 
+"""
+    Hand(cardVector :: Vector{Hand})
+
+Give hand object with its vector of cards and strength.
+
+# Examples
+```jldoctest
+julia> Hand(Card[Card("A"), Card("A"), Card("A"), Card("A"), Card("A")])
+Hand(Card[Card("A", 13), Card("A", 13), Card("A", 13), Card("A", 13), Card("A", 13)], 5//1)
+```
+See also: `strength`
+"""
 struct Hand
     cardVector :: Vector{Card}
     strength :: Rational
-    rank :: Int
     function Hand(cardVector :: Vector{Card})
-        new(cardVector, strength(cardVector), 0)
+        new(cardVector, strength(cardVector))
     end
 end
 
+"""
+    strength(cardLetter :: String) :: Int
+
+Give the strength of the given card value.
+
+# Examples
+```jldoctest
+julia> strength("A")
+13
+
+julia> strength("K")
+12
+
+julia> strength("9")
+8
+
+julia> strength(2)
+1
+```
+See also: `cardStrengthDict`
+"""
 function strength(cardLetter::String)::Int
     return cardStrengthDict[cardLetter]
 end
 
+"""
+    strength(cardVector :: Vector{Card}) :: Rational
+
+Give the strength of the given vector of cards.
+
+# Examples
+
+```jldoctest
+julia> strength(Card[Card("A"), Card("A"), Card("A"), Card("A"), Card("A")])
+5//1
+```
+See also: `unique`
+"""
 function strength(cardVector::Vector{Card})::Rational
     distinctCardVector = unique(cardVector)
     countDistinct = length(distinctCardVector)
@@ -47,6 +104,18 @@ function strength(cardVector::Vector{Card})::Rational
     end
 end
 
+"""
+    parseInput(path :: String)
+
+Transform the file at the given path to a structured collection of hands and bids.
+
+# Examples
+
+```jldoctest
+julia> parseInput()
+```
+See also: `Dict`, `eachline`, `split`, `Card`, `parse`
+"""
 function parseInput(path :: String) #= :: Vector{Vector{Union{Hand, Int}}} =#
     parsedInput = Dict{String, Union{Hand, Int}}[]
     for line in eachline(path)
@@ -57,7 +126,26 @@ function parseInput(path :: String) #= :: Vector{Vector{Union{Hand, Int}}} =#
     return parsedInput
 end
 
-function handSort(leftHand :: Hand, rightHand :: Hand)
+"""
+    Base.isless(leftHand :: Hand, rightHand :: Hand)
+
+Determines if one hand is less than another
+
+# Examples
+```jldoctest
+julia> hand = Hand(Card[Card("A"), Card("A"), Card("A"), Card("A"), Card("A")]);
+julia> isless(hand, hand)
+false
+
+julia> hand1 = Hand(Card[Card("A"), Card("A"), Card("A"), Card("A"), Card("A")]);
+julia> hand2 = Hand(Card[Card("A"), Card("A"), Card("A"), Card("A"), Card("K")]);
+julia> isless(hand1, hand2)
+false
+julia> isless(hand2, hand1)
+true
+```
+"""
+function Base.isless(leftHand :: Hand, rightHand :: Hand)
     if leftHand.strength != rightHand.strength
         return leftHand.strength < rightHand.strength
     else
@@ -66,13 +154,15 @@ function handSort(leftHand :: Hand, rightHand :: Hand)
                 return leftCard.strength < rightCard.strength
             end
         end
+        # only get here if all cards are equal i.e. hands are identical
+        return false
     end
 end
 
 function main()
-    handBidDictVector = parseInput("input_test.txt")
-    rankVector = sortperm(handBidDictVector, by=(handBidDict -> handBidDict["hand"]), lt = handSort)
-    return sum(handBidDict["bid"] * rank for (handBidDict, rank) in zip(handBidDictVector, rankVector))
+    handBidDictVector = parseInput("input.txt")
+    handBidDictVectorSorted = sort(handBidDictVector, by=(handBidDict -> handBidDict["hand"])) # unsorted rank vector
+    return sum(handBidDict["bid"] * rank for (rank, handBidDict) in enumerate(handBidDictVectorSorted))
 end
 
 main() |> display
