@@ -1,15 +1,3 @@
-mutable struct Node
-    name :: String
-    childLeft :: Union{Node, Nothing}
-    childRight :: Union{Node, Nothing}
-    function Node(name :: String)
-        return new(name, nothing, nothing)
-    end
-    function Node(name :: String, childLeft :: Node, childRight :: Node)
-        return new(name, childLeft, childRight)
-    end
-end
-
 function parseInput(path::String)
     lineVector = readlines(path)
     stepVector = String.(split(lineVector[1], ""))
