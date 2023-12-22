@@ -38,7 +38,7 @@ function main()
     universe              = parseInput("input.txt")
     galaxyLocationVector  = findGalaxies(universe)
     expansionLocationDict = findExpansions(universe)
-    dMat = distanceMatrix(galaxyLocationVector, expansionLocationDict, spaceDensity = 2)
+    dMat = distanceMatrix(galaxyLocationVector, expansionLocationDict, spaceDensity = 10^6)
     distanceVector = filter(!iszero, triu(dMat, 1))
     return sum(distanceVector)
 end
