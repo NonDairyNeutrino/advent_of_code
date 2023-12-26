@@ -1,5 +1,6 @@
 using Test
 using LinearAlgebra
+using Dates
 
 @enum Direction north east south west
 
@@ -102,7 +103,13 @@ end
 
 function tilt(platform :: Matrix{Char}, tiltDir :: Direction) :: Matrix{Char}
     rockPositionVector    = findall(==('O'), platform)
-    rockPositionVectorNew = rollRock(platform, tiltDir).(rockPositionVector)
+
+    rockPositionVectorNew = CartesianIndex{2}[]
+    Threads.@threads for rockPosition in rockPositionVector
+        @lock ReentrantLock() push!(rockPositionVectorNew, rollRock(platform, tiltDir, rockPosition))
+    end
+
+    # rockPositionVectorNew = rollRock(platform, tiltDir).(rockPositionVector)
     platformNew           = deepcopy(platform)
     platformNew[rockPositionVector]    .= '.'
     platformNew[rockPositionVectorNew] .= 'O'
@@ -115,9 +122,23 @@ end
 
 function cycle(platform :: Matrix{Char}, n = 1 :: Int) :: Matrix{Char}
     platformNew = deepcopy(platform)
-    for _ in 1:n
+    start = now()
+    t0 = start
+    for i in 1:n
         for tiltDir in [north, west, south, east]
             platformNew = tilt(platformNew, tiltDir)
+        end
+        if iszero(i % (n/10^4))
+            t = now()
+            # println("Current time: $t, Previous Time: $t0, Difference: $((t - t0).value / 1000) seconds")
+            # dt               = (t - t0).value / 1000 # seconds / 10^5 steps
+            percentCompleted = 100 * i / n
+            stepsLeft        = n - i
+            # timeRemaining    = dt * 10^5 * stepsLeft
+            timeElapsed      = round((t - start).value / 1000 / 60, sigdigits = 2)
+
+            println("$percentCompleted% completed; Elapsed time: $timeElapsed") #; Estimated Remaining Time: $timeRemaining")
+            t0 = now()
         end
     end
     return platformNew
@@ -184,4 +205,4 @@ function main()
 end
 
 # testSuite()
-# main() |> display
+main() |> display
