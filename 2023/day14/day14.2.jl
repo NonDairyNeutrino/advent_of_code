@@ -1,6 +1,7 @@
 using Test
 using LinearAlgebra
 using Dates
+using Memoization
 
 @enum Direction north east south west
 
@@ -101,33 +102,75 @@ function rollRock(platform :: Matrix{Char}, tiltDir :: Direction)
     return (rockPosition -> rollRock(platform, tiltDir, rockPosition))
 end
 
+function tilt!(platform :: Matrix{Char}, tiltDir :: Direction) :: Matrix{Char}
+    rockPositionVector    = findall(==('O'), platform)
+    rollRockFunction      = rollRock(platform, tiltDir)
+    rockPositionVectorNew = rollRockFunction.(rockPositionVector)
+    platform[rockPositionVector]    .= '.'
+    platform[rockPositionVectorNew] .= 'O'
+    return platform
+end
+
 function tilt(platform :: Matrix{Char}, tiltDir :: Direction) :: Matrix{Char}
     rockPositionVector    = findall(==('O'), platform)
 
-    rockPositionVectorNew = CartesianIndex{2}[]
+    # find new rock positions in parallel
+
+    #= rockPositionVectorNew = CartesianIndex{2}[]
     Threads.@threads for rockPosition in rockPositionVector
         @lock ReentrantLock() push!(rockPositionVectorNew, rollRock(platform, tiltDir, rockPosition))
-    end
-
-    # rockPositionVectorNew = rollRock(platform, tiltDir).(rockPositionVector)
+    end =#
+    rollRockFunction      = rollRock(platform, tiltDir)
+    rockPositionVectorNew = rollRockFunction.(rockPositionVector)
     platformNew           = deepcopy(platform)
     platformNew[rockPositionVector]    .= '.'
     platformNew[rockPositionVectorNew] .= 'O'
     return platformNew
 end
 
-function calculateLoad(platform :: Matrix{Char}, rockPosition :: CartesianIndex{2}) :: Int
-    return size(platform)[1] - rockPosition[1] + 1
+function cycle!(platform :: Matrix{Char}) :: Matrix{Char}
+    for tiltDir in [north, west, south, east]
+        tilt!(platform, tiltDir)
+    end
+    return platform
 end
 
-function cycle(platform :: Matrix{Char}, n = 1 :: Int) :: Matrix{Char}
+function cycle!(platform :: Matrix{Char}, n :: Int) :: Matrix{Char}
+    # start = now()
+    # t0 = start
+    for i in 1:n
+        cycle!(platform)
+
+        # if iszero(i % (n/10^4))
+        #     t = now()
+        #     # println("Current time: $t, Previous Time: $t0, Difference: $((t - t0).value / 1000) seconds")
+        #     # dt               = (t - t0).value / 1000 # seconds / 10^5 steps
+        #     percentCompleted = 100 * i / n
+        #     stepsLeft        = n - i
+        #     # timeRemaining    = dt * 10^5 * stepsLeft
+        #     timeElapsed      = round((t - start).value / 1000 / 60, sigdigits = 2) # minutes
+
+        #     println("$percentCompleted% completed; Elapsed time: $timeElapsed minutes") #; Estimated Remaining Time: $timeRemaining")
+        #     t0 = now()
+        # end
+    end
+    return platform
+end
+
+function cycle(platform :: Matrix{Char}) :: Matrix{Char}
+    platformNew = deepcopy(platform)
+    for tiltDir in [north, west, south, east]
+        platformNew = tilt(platformNew, tiltDir)
+    end
+    return platformNew
+end
+
+function cycle(platform :: Matrix{Char}, n :: Int) :: Matrix{Char}
     platformNew = deepcopy(platform)
     start = now()
     t0 = start
     for i in 1:n
-        for tiltDir in [north, west, south, east]
-            platformNew = tilt(platformNew, tiltDir)
-        end
+        platformNew = cycle(platformNew)
         if iszero(i % (n/10^4))
             t = now()
             # println("Current time: $t, Previous Time: $t0, Difference: $((t - t0).value / 1000) seconds")
@@ -144,12 +187,18 @@ function cycle(platform :: Matrix{Char}, n = 1 :: Int) :: Matrix{Char}
     return platformNew
 end
 
+function calculateLoad(platform::Matrix{Char}, rockPosition::CartesianIndex{2})::Int
+    return size(platform)[1] - rockPosition[1] + 1
+end
+
 echo(x) = (display(x); x)
 function testSuite()
-    platform = parseInput("inputTest.txt")
-    rockPositionVector = findall(==('O'), platform)
     @testset verbose = true begin #= for rockPosition in rockPositionVector =#
+        platform  = parseInput("inputTest.txt")
+        platform0 = deepcopy(platform)
+        rockPositionVector = findall(==('O'), platform)
         rockPosition = rockPositionVector[10]
+
         println("Testing for rock at $rockPosition")
         @testset "isOnNextEdge" begin
             @test isOnNextEdge(platform, north, rockPosition) == false
@@ -176,17 +225,16 @@ function testSuite()
             @test rollRock(platform, west,  rockPosition) == CartesianIndex(10, 3)
         end
         @testset "tilt" begin
-            # println("Test input")
-            # display(platform)
-
-            # println("Test output")
-            # display(parseInput("outputTest.txt"))
-
-            # println("Calculated output")
-            @test tilt(platform, north) == parseInput("outputTest.txt")
+            platformFinal = parseInput("outputTest.txt")
+            @test tilt(platform, north)     == platformFinal
+            platformNew = deepcopy(platform)
+            @test tilt!(platformNew, north) == platformFinal
         end
-        @testset "cycle$n" for n in 1:3 
-            @test cycle(platform, n) == parseInput("inputTestCycle$n.txt")
+        @testset "cycle $n" for n in 1:3 
+            platformCycle = parseInput("inputTestCycle$n.txt")
+            @test cycle(platform, n)  == platformCycle
+            @test cycle!(platform, n) == platformCycle
+            platform = deepcopy(platform0)
         end
     end
 end
@@ -199,10 +247,10 @@ end
 =#
 function main()
     platform = parseInput("inputTest.txt")
-    platformNew = cycle(platform, 10^9)
+    platformNew = cycle!(platform, 10^9)
     rockPositionVectorNew = findall(==('O'), platformNew)
     return sum(calculateLoad(platformNew, rockPositionNew) for rockPositionNew in rockPositionVectorNew)
 end
 
-# testSuite()
-main() |> display
+testSuite()
+# main() |> display
