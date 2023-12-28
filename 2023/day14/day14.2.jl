@@ -141,7 +141,10 @@ function tilt!(platform :: Matrix{Char}, tiltDir :: Direction, rockPositionVecto
     # println(tiltDir)
     # println("==============")
     # display(rockPositionVector)
-    rockPositionVector            .= rollRockFunction.(rockPositionVector)
+    Threads.@threads for index in eachindex(rockPositionVector)
+        rockPositionVector[index] = rollRockFunction(rockPositionVector[index])
+    end
+    # rockPositionVector            .= rollRockFunction.(rockPositionVector)
     # display(rockPositionVector)
     # println()
     platform[rockPositionVector] .= 'O'
@@ -288,7 +291,7 @@ end
 4. for each rock, move to site n_r + 1 in opposite direction of rock
 =#
 function main()
-    platform = parseInput("input.txt")
+    platform = parseInput("inputTest.txt")
     platformNew = cycle!(platform, 10^9, progress = true)
     rockPositionVectorNew = findall(==('O'), platformNew)
     return sum(calculateLoad(platformNew, rockPositionNew) for rockPositionNew in rockPositionVectorNew)
