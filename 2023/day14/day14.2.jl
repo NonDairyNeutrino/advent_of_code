@@ -135,18 +135,16 @@ function tilt!(platform :: Matrix{Char}, tiltDir :: Direction) :: Tuple{Matrix{C
     return platform, rockPositionVector
 end
 
-function tilt!(platform :: Matrix{Char}, tiltDir :: Direction, rockPositionVector :: Vector{CartesianIndex{2}}) :: Tuple{Matrix{Char}, Vector{CartesianIndex{2}}}
+function tilt!(platform :: Matrix{Char}, tiltDir :: Direction, rockPositionVector :: Vector{CartesianIndex{2}}; isParallel = false :: Bool) :: Tuple{Matrix{Char}, Vector{CartesianIndex{2}}}
     rollRockFunction              = rollRock(copy(platform), tiltDir)
     platform[rockPositionVector] .= '.'
-    # println(tiltDir)
-    # println("==============")
-    # display(rockPositionVector)
-    Threads.@threads for index in eachindex(rockPositionVector)
-        rockPositionVector[index] = rollRockFunction(rockPositionVector[index])
+    if isParallel
+        Threads.@threads for index in eachindex(rockPositionVector)
+            rockPositionVector[index] = rollRockFunction(rockPositionVector[index])
+        end
+    else
+        rockPositionVector .= rollRockFunction.(rockPositionVector)
     end
-    # rockPositionVector            .= rollRockFunction.(rockPositionVector)
-    # display(rockPositionVector)
-    # println()
     platform[rockPositionVector] .= 'O'
     return platform, rockPositionVector
 end
@@ -169,31 +167,29 @@ end
     return platform
 end =#
 
-function cycle!(platform :: Matrix{Char}, rockPositionVector :: Vector{CartesianIndex{2}}) :: Matrix{Char}
+function cycle!(platform :: Matrix{Char}, rockPositionVector :: Vector{CartesianIndex{2}}; isParallel = false :: Bool) :: Matrix{Char}
     for tiltDir in [north, west, south, east]
-        tilt!(platform, tiltDir, rockPositionVector)
+        tilt!(platform, tiltDir, rockPositionVector, isParallel = isParallel)
     end
     return platform
 end
 
-function cycle!(platform :: Matrix{Char}, n :: Int; progress=false) :: Matrix{Char}
+function cycle!(platform :: Matrix{Char}, n :: Int; showProgress=false, isParallel = false :: Bool) :: Matrix{Char}
     start = now()
-    t0 = start
     rockPositionVector = findall(==('O'), platform)
     for i in 1:n
-        cycle!(platform, rockPositionVector)
+        cycle!(platform, rockPositionVector, isParallel = isParallel)
 
-        reportPercent = 0.01
+        reportPercent = 0.1
         reportSteps   = (reportPercent / 100) * n
-        if progress && iszero(i % reportSteps)
+        if showProgress && iszero(i % reportSteps)
             t = now()
             percentCompleted = 100 * i / n
             stepsRemaining   = n - i
-            timeRemaining    = round(Int64, (((t - t0).value / reportSteps #= average milliseconds per report =#) * stepsRemaining) #= milliseconds =# / 1000 / 60) |> Minute # minutes left
             timeElapsed      = round(Int64, (t - start).value / 1000 / 60) |> Minute # minutes
+            timeRemaining    = round(Int64, ((timeElapsed.value / i #= average time per step =#) * stepsRemaining)) |> Minute # minutes left
 
             println("$percentCompleted% completed; Elapsed time: $timeElapsed; Estimated Remaining Time: $timeRemaining")
-            t0 = now()
         end
     end
     return platform
@@ -291,8 +287,8 @@ end
 4. for each rock, move to site n_r + 1 in opposite direction of rock
 =#
 function main()
-    platform = parseInput("inputTest.txt")
-    platformNew = cycle!(platform, 10^9, progress = true)
+    platform  = parseInput("input.txt")
+    platformNew = cycle!(platform, 10^6, showProgress = true, isParallel = true)
     rockPositionVectorNew = findall(==('O'), platformNew)
     return sum(calculateLoad(platformNew, rockPositionNew) for rockPositionNew in rockPositionVectorNew)
 end
