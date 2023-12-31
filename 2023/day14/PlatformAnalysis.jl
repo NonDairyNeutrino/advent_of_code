@@ -29,6 +29,29 @@ function parseInput(path :: String) :: Matrix{Char}
     return [[line...] for line in eachline(path)] |> stack |> permutedims
 end
 
+"""
+    findBoundary(platformDiagram :: Matrix{Char}) :: Vector{CartesianIndex{2}}
+
+Return the surrounding boundary of the "open" platform diagram.
+
+# Examples
+
+```jldoctest
+julia> platform = ['#' '.'; '#' 'O']
+
+julia> findBoundary(platform)
+8-element Vector{CartesianIndex{2}}:
+ CartesianIndex(0, 1)
+ CartesianIndex(0, 2)
+ CartesianIndex(1, 0)
+ CartesianIndex(2, 0)
+ CartesianIndex(3, 1)
+ CartesianIndex(3, 2)
+ CartesianIndex(1, 3)
+ CartesianIndex(2, 3)
+```
+See also: `findInternalCubes`, `findCubes`, `union`.
+"""
 function findBoundary(platformDiagram :: Matrix{Char}) :: Vector{CartesianIndex{2}}
     numRows, numCols = size(platformDiagram)
     boundaryNorth   = CartesianIndices((0:0, 1 : numCols))
@@ -38,8 +61,24 @@ function findBoundary(platformDiagram :: Matrix{Char}) :: Vector{CartesianIndex{
     return union(boundaryNorth, boundaryWest, boundarySouth, boundaryEast)
 end
 
+"""
+    findInternalCubes(platformDiagram :: Matrix{Char}) :: Vector{CartesianIndex{2}}
+
+Return the positions of the cubes on the platform.
+
+# Examples
+```jldoctest
+julia> platform = ['#' '.'; '#' 'O']
+
+julia> findInternalCubes(platform)
+2-element Vector{CartesianIndex{2}}:
+ CartesianIndex(1, 1)
+ CartesianIndex(2, 1)
+ ```
+ See also: `findBoundary`, `findall`.
+"""
 function findInternalCubes(platformDiagram :: Matrix{Char}) :: Vector{CartesianIndex{2}}
-    return findall(==('#'), platformDiagram) # manifestly ordered by column
+    return findall(==('#'), platformDiagram) # ordered by column
 end
 
 function findCubes(platformDiagram :: Matrix{Char}) :: Vector{CartesianIndex{2}}
@@ -60,7 +99,12 @@ function testSuite()
                 CartesianIndices((11:11, 1:10)), # south boundary
                 CartesianIndices((1:10, 11:11))  # east boundary
             )
-            internalCubesManual = Set([CartesianIndex(1, 6), CartesianIndex(2, 5), CartesianIndex(2, 10), CartesianIndex(3, 6), CartesianIndex(3, 7), CartesianIndex(4, 4), CartesianIndex(5, 9), CartesianIndex(6, 3), CartesianIndex(6, 8), CartesianIndex(6, 10), CartesianIndex(7, 6), CartesianIndex(9, 1), CartesianIndex(9, 6), CartesianIndex(9, 7), CartesianIndex(9, 8), CartesianIndex(10, 1), CartesianIndex(10, 6)])
+            internalCubesManual = CartesianIndex{2}[
+                CartesianIndex(9, 1), CartesianIndex(10, 1), CartesianIndex(6, 3), CartesianIndex(4, 4),
+                CartesianIndex(2, 5), CartesianIndex(1, 6),  CartesianIndex(3, 6), CartesianIndex(7, 6),
+                CartesianIndex(9, 6), CartesianIndex(10, 6), CartesianIndex(3, 7), CartesianIndex(9, 7),
+                CartesianIndex(6, 8), CartesianIndex(9, 8),  CartesianIndex(5, 9), CartesianIndex(2, 10), CartesianIndex(6, 10)
+            ]
             @test findBoundary(platform)      == boundaryManual
             @test findInternalCubes(platform) == internalCubesManual
             @test findCubes(platform)         == union(boundaryManual, internalCubesManual)
