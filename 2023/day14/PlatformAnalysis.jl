@@ -37,7 +37,7 @@ Return the surrounding boundary of the "open" platform diagram.
 # Examples
 
 ```jldoctest
-julia> platform = ['#' '.'; '#' 'O']
+julia> platform = ['#' '.'; '#' 'O'];
 
 julia> findBoundary(platform)
 8-element Vector{CartesianIndex{2}}:
@@ -68,7 +68,7 @@ Return the positions of the cubes on the platform.
 
 # Examples
 ```jldoctest
-julia> platform = ['#' '.'; '#' 'O']
+julia> platform = ['#' '.'; '#' 'O'];
 
 julia> findInternalCubes(platform)
 2-element Vector{CartesianIndex{2}}:
@@ -81,11 +81,35 @@ function findInternalCubes(platformDiagram :: Matrix{Char}) :: Vector{CartesianI
     return findall(==('#'), platformDiagram) # ordered by column
 end
 
+"""
+    findCubes(platformDiagram :: Matrix{Char}) :: Vector{CartesianIndex{2}}
+
+Return the positions of all cubes on the "closed" platform, sorted by column.
+
+# Examples
+```jldoctest
+julia> platform = ['#' '.'; '#' 'O'];
+
+julia> findCubes(platform)
+10-element Vector{CartesianIndex{2}}:
+ CartesianIndex(1, 0)
+ CartesianIndex(2, 0)
+ CartesianIndex(0, 1)
+ CartesianIndex(1, 1)
+ CartesianIndex(2, 1)
+ CartesianIndex(3, 1)
+ CartesianIndex(0, 2)
+ CartesianIndex(3, 2)
+ CartesianIndex(1, 3)
+ CartesianIndex(2, 3)
+````
+See also: `findBoundary`, `findInternalCubes`.
+"""
 function findCubes(platformDiagram :: Matrix{Char}) :: Vector{CartesianIndex{2}}
-    return union(findBoundary(platformDiagram), findInternalCubes(platformDiagram))
+    return union(findBoundary(platformDiagram), findInternalCubes(platformDiagram)) |> sort # ordered by column
 end
 
-function findAdjacentCubes(cubePosition :: CartesianIndex{2}, platform :: Platform)
+function findAdjacentCubes(platform :: Platform, cube :: Cube)
     
 end
 
@@ -93,7 +117,7 @@ function testSuite()
     @testset verbose=true begin
         platform = parseInput("inputTest.txt")
         @testset "Cubes" begin
-            boundaryManual      = union(
+            boundaryManual = union(
                 CartesianIndices((0:0, 1:10)),   # north boundary
                 CartesianIndices((1:10, 0:0)),   # west boundary
                 CartesianIndices((11:11, 1:10)), # south boundary
@@ -107,7 +131,7 @@ function testSuite()
             ]
             @test findBoundary(platform)      == boundaryManual
             @test findInternalCubes(platform) == internalCubesManual
-            @test findCubes(platform)         == union(boundaryManual, internalCubesManual)
+            @test findCubes(platform)         == union(boundaryManual, internalCubesManual) |> sort
         end
 
     end
