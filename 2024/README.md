@@ -1,8 +1,6 @@
-# Advent of Code 2024 - Fortran
-## We goin' old school
+# Advent of Code 2024
+## Julia
 
-I bet these elves have never used Fortran.
+[![Build Status](https://github.com/nondairyneutrino/AoC2024.jl/actions/workflows/CI.yml/badge.svg?branch=trunk)](https://github.com/nondairyneutrino/AoC2024.jl/actions/workflows/CI.yml?query=branch%3Atrunk)
 
-This project is managed by the Fortran Package Manager (fpm).
-The binary can be built and run with `fpm run`.
-Tests can be run with `fpm test`.
+
