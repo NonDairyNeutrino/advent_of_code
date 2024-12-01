@@ -1,4 +1,4 @@
-# Advent of Code 2024
+# Advent of Code 2024 - Fortran
 ## We goin' old school
 
 I bet these elves have never used Fortran.
