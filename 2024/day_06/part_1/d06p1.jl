@@ -66,14 +66,16 @@ function getNodeVector(grid :: Matrix{SubString{String}}, obstructionVector :: V
     return nodeVector |> Iterators.flatten |> collect
 end
 
-function getAdjacencyMatrix(nodeVector :: Vector{CartesianIndex{2}}) :: Matrix{CartesianIndices}
-    adjacencyMatrix = Matrix{CartesianIndices}(undef, length(nodeVector), length(nodeVector))
+function getAdjacencyMatrix(nodeVector :: Vector{CartesianIndex{2}}) :: Matrix{Set{CartesianIndex{2}}}
+    dim = length(nodeVector) # DOUG DIMMADOME DEEZ NUTZ
+    adjacencyMatrix = fill(Set{CartesianIndex{2}}(), dim, dim)
     for (i, nodeI) in enumerate(nodeVector)
         for (j, nodeJ) in enumerate(nodeVector)
             if any(Tuple(nodeI) .== Tuple(nodeJ)) # do they share a lane?
                 edge = nodeI : nodeJ # vector of indices between them
                 if !any(node in edge for node in nodeVector) # is there an obstruction between them?
-                    adjacencyMatrix[i, j] = edge
+                    adjacencyMatrix[i, j] = edge |> Set
+                    # display(edge)
                     # instead of a numeric edge weight
                     # use the set of positions between the nodes
                     # important later when checking for duplicates
@@ -86,16 +88,22 @@ end
 
 function graphMain()
     grid = parseInput("input_test.txt")
+    display(grid)
     obstructionVector = findall(==("#"), grid)
     # get node vector i.e. vertex set
+    # each node has a value equal to the CartesianIndex of its position in the grid
     nodeVector = getNodeVector(grid, obstructionVector)
     # connect the nodes
+    # each entry in the adjacencyMatrix is the set of CartesianIndex positions between
+    # it and another node
     adjacencyMatrix = getAdjacencyMatrix(nodeVector)
-
 
     positionStart = findfirst(==("^"), grid)
     # facing north means stop at row below obstruction
-    firstNode     = findprev(==("#"), grid, positionStart) + CartesianIndex(1, 0)
+    firstNodeValue = findprev(==("#"), grid, positionStart) + CartesianIndex(1, 0)
+    firstNode = findfirst(==(firstNodeValue), nodeVector)
+    # now that we're at a node, how to travel to next node
+    adjacencyMatrix
 end
 
 graphMain()
