@@ -105,7 +105,7 @@ function main() :: Nothing
     equationVector = parseInput(path)
     rm(fileName * "_tree" * ext, force=true)
     totalCalibration = Threads.Atomic{Int}(0)
-    #= Threads.@threads =# for eq in equationVector
+    Threads.@threads for eq in equationVector
         operandVector  = eq.operands
         forest, leafVector = makeForest(operandVector, operatorVector) # makeForest([1, 2, 3], [+, *])
         if eq.test in getproperty.(leafVector, :value)
