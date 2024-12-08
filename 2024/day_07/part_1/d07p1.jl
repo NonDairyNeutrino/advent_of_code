@@ -22,23 +22,10 @@ struct Leaf <: AbstractNode
     value :: Int
 end
 
-function Base.:(==)(leafX :: Leaf, leafY :: Leaf)
-    return leafX.value == leafY.value
-end
-
 struct Node <: AbstractNode
     id :: String
     value :: Int
     children :: Vector{Union{Node, Leaf}}
-end
-
-Base.:(==)(node :: Node, leaf :: Leaf) = false
-
-function Base.:(==)(nodeX :: Node, nodeY :: Node)
-    nodeX.value != nodeY.value && return false # values need to be the same
-    println("THIS FUNCTIONALITY IS NOT COMPLETE; RETURING MISSING.")
-    return missing
-    # all(nodeX.children[i] == nodeY.children[i] for i in eachindex())
 end
 
 function parseInput(path :: String) :: Vector{Equation}
@@ -52,68 +39,82 @@ function parseInput(path :: String) :: Vector{Equation}
 end
 
 # TODO: use Refs and views
-function makeTree(id :: String, value :: Int, operandVector :: Vector{Int}, operatorVector :: Vector{T}) where T <: Function # :: T where T <: AbstractNode
+function makeTree(leafVector :: Vector{Leaf}, id :: String, value :: Int, operandVector :: Vector{Int}, operatorVector :: Vector{T}) where T <: Function # :: T where T <: AbstractNode
     children = similar(operatorVector, Union{Node, Leaf})
     if isempty(operandVector)
         node = Leaf(id, value)
+        push!(leafVector, node)
     else
         operand, rest = Iterators.peel(operandVector)
         rest = collect(rest)
         for (i, op) in enumerate(operatorVector)
             childValue = op(value, operand)
-            children[i] = makeTree(id * ".$i", childValue, rest, operatorVector)
+            children[i] = makeTree(leafVector, id * ".$i", childValue, rest, operatorVector)
         end
         node = Node(id, value, children)
     end
     return node
 end
 
-function printTree(root :: Leaf)
-    println("leaf: ", root.id, " value: ", root.value)
+function printTree(root :: Leaf, io:: IO = stdout)
+    println(io, "Leaf: ", root.id, " value: ", root.value)
 end
 
-function printTree(root :: Node)  :: Nothing
-    println("Node: ", root.id, " value: ", root.value)
+function printTree(root :: Node, io:: IO = stdout)  :: Nothing
+    println(io, "Node: ", root.id, " value: ", root.value)
     for (i, child) in enumerate(root.children)
-        printTree(child)
+        printTree(child, io)
     end
 end
 
-# @tesset "makeTree" begin
-#     @test makeTree(1, [2, 3], [+]) == 
-# end
-
-function makeForest(operandVector :: Vector{Int}, operatorVector :: Vector{T}) :: Vector{Union{Node, Leaf}} where T <: Function
+function makeForest(operandVector :: Vector{Int}, operatorVector :: Vector{T}) :: Tuple{Vector{Union{Node, Leaf}}, Vector{Leaf}} where T <: Function
     forest = similar(operatorVector, Union{Node, Leaf})
+    leafVector = Leaf[]
+
     operand1, rest = Iterators.peel(operandVector)
     operand2, rest = Iterators.peel(rest)
     rest = collect(rest)
     for (i, op) in enumerate(operatorVector)
         value = op(operand1, operand2)
-        forest[i] = makeTree("$i", value, rest, operatorVector)
+        forest[i] = makeTree(leafVector, "$i", value, rest, operatorVector)
     end
-    return forest
+    return (forest, leafVector)
 end
 
-function printForest(forest :: Vector{Union{Node, Leaf}}) :: Nothing
+function printForest(forest :: Vector{Union{Node, Leaf}}, io :: IO = stdout) :: Nothing
     for tree in forest
-        printTree(tree)
-        println()
+        printTree(tree, io)
+        println(io)
     end
     return nothing
 end
 
 function main() :: Nothing
-    printstyled("NEW RUN\n", color=:green)
-    path   = "input_test.txt"
+    fileName = "input"
+    ext      = ".txt"
+    path             = fileName * ext
+
     operatorVector = [+, *]
     equationVector = parseInput(path)
+    rm(fileName * "_tree" * ext, force=true)
+    totalCalibration = 0
     for eq in equationVector
         operandVector  = eq.operands
-        println("operandVector: $operandVector")
-        forest = makeForest(operandVector, operatorVector) # makeForest([1, 2, 3], [+, *])
-        printForest(forest)
+        forest, leafVector = makeForest(operandVector, operatorVector) # makeForest([1, 2, 3], [+, *])
+        if eq.test in getproperty.(leafVector, :value)
+            totalCalibration += eq.test
+        end
+        # uncomment to print tree
+        # println("operandVector: $operandVector")
+        # printForest(forest)
+
+        # uncomment below to save output to a file
+        # open(fileName * "_tree" * ext, "a") do io
+        #     println(io, "operandVector: $operandVector")
+        #     printForest(forest, io)
+        # end
     end
+    println("Total Calibration Result: ", totalCalibration)
     return nothing
 end
 
