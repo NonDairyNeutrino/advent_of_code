@@ -104,24 +104,25 @@ function main() :: Nothing
     operatorVector = [+, *, (left, right) -> parse(Int, string(left, right))]
     equationVector = parseInput(path)
     rm(fileName * "_tree" * ext, force=true)
-    totalCalibration = 0
-    for eq in equationVector
+    totalCalibration = Threads.Atomic{Int}(0)
+    #= Threads.@threads =# for eq in equationVector
         operandVector  = eq.operands
         forest, leafVector = makeForest(operandVector, operatorVector) # makeForest([1, 2, 3], [+, *])
         if eq.test in getproperty.(leafVector, :value)
-            totalCalibration += eq.test
+            Threads.atomic_add!(totalCalibration, eq.test)
+            # totalCalibration += eq.test
         end
         # uncomment to print tree
         # println("operandVector: $operandVector")
         # printForest(forest)
 
         # uncomment below to save output to a file
-        # open(fileName * "_tree" * ext, "a") do io
-        #     println(io, "operandVector: $operandVector")
-        #     printForest(forest, io)
-        # end
+        open(fileName * "_tree" * ext, "a", lock = true) do io
+            println(io, "operandVector: $operandVector")
+            printForest(forest, io)
+        end
     end
-    println("Total Calibration Result: ", totalCalibration)
+    println("Total Calibration Result: ", totalCalibration[])
     return nothing
 end
 
