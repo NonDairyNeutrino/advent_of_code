@@ -54,14 +54,14 @@ end
 # TODO: use Refs and views
 function makeTree(id :: String, value :: Int, operandVector :: Vector{Int}, operatorVector :: Vector{T}) where T <: Function # :: T where T <: AbstractNode
     children = similar(operatorVector, Union{Node, Leaf})
-    operand, rest = Iterators.peel(operandVector)
-    if isempty(rest)
-        node = Leaf(id * , value)
+    if isempty(operandVector)
+        node = Leaf(id, value)
     else
+        operand, rest = Iterators.peel(operandVector)
         rest = collect(rest)
         for (i, op) in enumerate(operatorVector)
             childValue = op(value, operand)
-            children[i] = makeTree(childValue, rest, operatorVector)
+            children[i] = makeTree(id * ".$i", childValue, rest, operatorVector)
         end
         node = Node(id, value, children)
     end
@@ -69,14 +69,12 @@ function makeTree(id :: String, value :: Int, operandVector :: Vector{Int}, oper
 end
 
 function printTree(root :: Leaf)
-    println("leaf: ", root.value)
+    println("leaf: ", root.id, " value: ", root.value)
 end
 
 function printTree(root :: Node)  :: Nothing
-    println("value: ", root.value)
-    println("children: ")
+    println("Node: ", root.id, " value: ", root.value)
     for (i, child) in enumerate(root.children)
-        println("child: ", i)
         printTree(child)
     end
 end
@@ -85,16 +83,19 @@ end
 #     @test makeTree(1, [2, 3], [+]) == 
 # end
 
-function makeForest(operandVector :: Vector{Int}, operatorVector :: Vector{T}) :: Vector{Node} where T <: Function
-    forest = similar(operatorVector, Node)
+function makeForest(operandVector :: Vector{Int}, operatorVector :: Vector{T}) :: Vector{Union{Node, Leaf}} where T <: Function
+    forest = similar(operatorVector, Union{Node, Leaf})
+    operand1, rest = Iterators.peel(operandVector)
+    operand2, rest = Iterators.peel(rest)
+    rest = collect(rest)
     for (i, op) in enumerate(operatorVector)
-        value = op(operandVector[1:2]...)
-        forest[i] = makeTree(value, operandVector, operatorVector)
+        value = op(operand1, operand2)
+        forest[i] = makeTree("$i", value, rest, operatorVector)
     end
     return forest
 end
 
-function printForest(forest :: Vector{Node}) :: Nothing
+function printForest(forest :: Vector{Union{Node, Leaf}}) :: Nothing
     for tree in forest
         printTree(tree)
         println()
@@ -103,16 +104,17 @@ function printForest(forest :: Vector{Node}) :: Nothing
 end
 
 function main() :: Nothing
+    printstyled("NEW RUN\n", color=:green)
     path   = "input_test.txt"
     operatorVector = [+, *]
     equationVector = parseInput(path)
-    eq             = equationVector[1]
-    operandVector  = eq.operands
-
-    forest = makeForest([1, 2, 3], [+, *])
-    printForest(forest)
+    for eq in equationVector
+        operandVector  = eq.operands
+        println("operandVector: $operandVector")
+        forest = makeForest(operandVector, operatorVector) # makeForest([1, 2, 3], [+, *])
+        printForest(forest)
+    end
     return nothing
-    # makeForest(operandVector, operatorVector)
 end
 
 main()
