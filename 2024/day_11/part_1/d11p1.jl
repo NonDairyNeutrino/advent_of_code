@@ -12,6 +12,8 @@ struct Splicer{T}
     value :: Vector{T}
 end
 
+Base.:length(s :: Splicer) = length(s.value)
+
 Base.:setindex!(v :: Vector{T} where T, s :: Splicer{T} where T, index :: Int) :: Vector{T} where T = begin
     # println("v = $v, index = $index, s.value = $(s.value)")
     v[index] = 0
@@ -30,34 +32,34 @@ function splitIn2(string :: String) :: Vector{String}
     return [left, right]
 end
 
-function applyRules(stoneValue :: Int) :: Union{Int, Splicer{Int}}
+function applyRules(stoneValue :: Int) :: Vector{Int}
     # println(stoneValue)
     if stoneValue == 0
-        return 1
+        return [1]
     elseif hasEvenDigit(stoneValue)
         stoneValueString = string(stoneValue)
-        return parse.(Int, splitIn2(stoneValueString)) |> Splicer
+        return parse.(Int, splitIn2(stoneValueString)) # |> Splicer
     else
-        return stoneValue * 2024
+        return [stoneValue * 2024]
     end
 end
 
 function main()
-    stoneVector = readdlm("input_test.txt", ' ', Int, '\n') |> vec
-    blinkCount = 2
-    # for blink in 1:blinkCount
-    #     println("Blink: ", blink)
-    #     nCount = count(hasEvenDigit, stoneVector)
-    #     tempVector = zeros(length(stoneVector) + nCount)
-    #     for i in eachindex(stoneVector)
-    #         tempVector[i] = applyRules(stoneVector[i])
-    #     end
+    stoneVector = readdlm("input.txt", ' ', Int, '\n') |> vec
+    blinkCount = 25
+    for blink in 1:blinkCount
+        # println("stoneVector: ")
+        # display(stoneVector)
+        println("Blink: $blink, stoneCount: ", length(stoneVector))
 
-    #     stoneVector = tempVector
-    #     display(stoneVector)
-    # end
+        tempVector = Int[]
+        for stone in stoneVector
+            append!(tempVector, applyRules(stone))
+        end
+        stoneVector = tempVector
+    end
 
-    return applyRules.(stoneVector)
+    return stoneVector |> length
 end
 
 main()
