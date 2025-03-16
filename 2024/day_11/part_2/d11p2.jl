@@ -8,19 +8,6 @@ Plan of Attack:
 
 using DelimitedFiles
 
-struct Splicer{T}
-    value :: Vector{T}
-end
-
-Base.:length(s :: Splicer) = length(s.value)
-
-Base.:setindex!(v :: Vector{T} where T, s :: Splicer{T} where T, index :: Int) :: Vector{T} where T = begin
-    # println("v = $v, index = $index, s.value = $(s.value)")
-    v[index] = 0
-    splice!(v, index, s.value)
-    return v
-end
-
 function hasEvenDigit(n :: Int) :: Bool
     return floor(Int, log10(n)) + 1 |> iseven
 end
@@ -38,28 +25,32 @@ function applyRules(stoneValue :: Int) :: Vector{Int}
         return [1]
     elseif hasEvenDigit(stoneValue)
         stoneValueString = string(stoneValue)
-        return parse.(Int, splitIn2(stoneValueString)) # |> Splicer
+        return parse.(Int, splitIn2(stoneValueString))
     else
         return [stoneValue * 2024]
     end
 end
 
-function main()
+function main() :: Nothing
     stoneVector = readdlm("input.txt", ' ', Int, '\n') |> vec |> Base.Lockable
-    blinkCount = 25
+    blinkCount = 37
     for blink in 1:blinkCount
         # println("stoneVector: ")
         # display(stoneVector)
-        println("Blink: $blink, stoneCount: ", @lock(stoneVector, length(stoneVector)))
+        print("Blink: $blink, stoneCount: ", @lock(stoneVector, length(stoneVector[])), "\r")
 
         tempVector = Base.Lockable(Int[])
-        for stone in stoneVector
-            @lock(tempVector, append!(tempVector[], applyRules(stone)))
-        end
-        stoneVector = tempVector
+        @lock(stoneVector, begin
+            Threads.@threads for stone in stoneVector[]
+                @lock(tempVector, append!(tempVector[], applyRules(stone)))
+            end
+            stoneVector = tempVector
+        end)
     end
 
-    return stoneVector |> length
+    println()
+    println("Final number of stones: ", @lock(stoneVector, stoneVector[] |> length))
+    return nothing
 end
 
 main()
