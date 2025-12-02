@@ -1,0 +1,6 @@
+[deps]
+AoC2025Day02 = "76bec451-c4e8-4815-9a07-5301d2c84473"
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+
+[sources]
+AoC2025Day02 = {path = ".."}
