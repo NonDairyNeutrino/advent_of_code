@@ -1,8 +1,19 @@
 module y25d01
 export main
 
-function main1(input)
+include("parsing.jl")
+include("Dial.jl")
 
+function main1(input)
+    bound = 100
+    start = 50
+    dial = Dial{Int}(bound, start)
+    movev = parse_input(input)
+
+    dial_seq  = accumulate((dial, move) -> spin(dial, move), movev; init = dial)
+    nzeros = count(dial -> iszero(dial.loc), dial_seq)
+    @debug "" dial_seq
+    return nzeros
 end
 
 function main2(input)
