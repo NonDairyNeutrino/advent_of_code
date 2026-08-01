@@ -1,4 +1,3 @@
-use std::char;
 use std::{env::SplitPaths, fs::read_to_string};
 use std::io::Result;
 use std::str::{FromStr, Split};
@@ -8,9 +7,9 @@ struct Rotation {
     len: u8
 }
 
-fn parse_input(path: &str) ->  { // add return type
+fn parse_input(path: &str) -> impl Iterator<Item = Rotation> { // add return type
     let input_res: Result<String> = read_to_string(path); // result wrapping file contents
-    let rots = input_res.unwrap().split('\n');            // iterator over rotations
+    let rots: Split<'_, char> = input_res.unwrap().split('\n');            // iterator over rotations
     rots.map(
         | rot | -> Rotation {
             let (dir_str, len_str) = rot.split_at(1);
