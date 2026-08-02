@@ -19,6 +19,12 @@ fn main() {
     // if accumulator is zero, incrememnt counter
     // repeat
     let path: &Path = Path::new("input_test.txt");
-    let roterator = parse_input(path);
-    roterator.for_each(|rot| println!("Line: {}", rot));
+    let roterator = parse_input(path); // iterator over input lines that gives integers
+    let mut dial: i8 = 50;
+    println!("Dial at {}", dial);
+    roterator.for_each(|rot| {
+        dial = (dial + rot) % 100;
+        println!("Dial at {}", dial)
+    })
+    // roterator.for_each(|rot| println!("Line: {}", rot));
 }
