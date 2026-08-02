@@ -21,10 +21,15 @@ fn main() {
     let path: &Path = Path::new("input_test.txt");
     let roterator = parse_input(path); // iterator over input lines that gives integers
     let mut dial: i8 = 50;
+    let mut accumulator: i8 = 0;
     println!("Dial at {}", dial);
     roterator.for_each(|rot| {
         dial = (dial + rot) % 100;
-        println!("Dial at {}", dial)
-    })
+        if 0 == dial {
+            accumulator += 1;
+        }
+        println!("Dial at {}; Hit zero {} times", dial, accumulator);
+    });
+    println!("Final dial: {}; Final zero count: {}", dial, accumulator)
     // roterator.for_each(|rot| println!("Line: {}", rot));
 }
