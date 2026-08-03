@@ -10,6 +10,14 @@ fn parse_input(path: &Path) -> impl Iterator<Item = i16> {
     rot_strs.map(|rot_str| -> i16 { rot_str.parse::<i16>().unwrap_or_default() })
 }
 
+fn mod100(x: i16) -> i16 {
+    if x < 0 {
+        return 100 - (-x % 100);
+    } else {
+        return x % 100;
+    }
+}
+
 fn main() {
     // open the file
     // read line into buffer
@@ -18,18 +26,17 @@ fn main() {
     // add to accumulator
     // if accumulator is zero, incrememnt counter
     // repeat
-    let path: &Path = Path::new("input.txt");
+    let path: &Path = Path::new("input_test.txt");
     let roterator = parse_input(path); // iterator over input lines that gives integers
     let mut dial: i16 = 50;
     let mut accumulator: i16 = 0;
-    // println!("Dial at {}", dial);
     roterator.for_each(|rot| {
-        println!("dial: {}, rot: {}", dial, (rot % 100));
-        dial = (dial + (rot % 100)) % 100;
-        if 0 == dial {
+        if dial + rot <= 0 || dial + rot >= 100 {
+            // FIX double counts hits and passes
             accumulator += 1;
         }
-        // println!("Dial at {}; Hit zero {} times", dial, accumulator);
+        println!("dial: {}, rot: {}, acc: {}", dial, rot, accumulator);
+        dial = mod100(dial + rot);
     });
     println!("Final dial: {}; Final zero count: {}", dial, accumulator)
 }
