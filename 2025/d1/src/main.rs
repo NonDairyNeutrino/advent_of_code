@@ -34,7 +34,7 @@ fn main() {
     let mut pre_rot: i16 = 0;
     let mut post_rot: i16 = 50;
     let mut pre_div: i16 = 0;
-    let mut post_div: i16 = post_rot.div_euclid(DIALSIZE);
+    let mut post_div: i16 = 0;
     let mut delta_div: i16 = 0;
     let mut hits: i16 = 0;
 
@@ -42,15 +42,10 @@ fn main() {
         // update dial position
         pre_rot = post_rot;
         post_rot += rot;
-        if post_rot.is_negative() {
-            println!("DIAL IS NEGATIVE!")
-        };
         print_dial(post_rot);
         // update zero hits
         pre_div = pre_rot.div_euclid(DIALSIZE);
-        println!("pre_div = {}", pre_div);
         post_div = post_rot.div_euclid(DIALSIZE);
-        println!("post_div = {}", post_div);
         delta_div = post_div - pre_div;
         hits += delta_div.abs();
     });
