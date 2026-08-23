@@ -50,3 +50,4 @@ rust-project.json
 
 # End of https://www.toptal.com/developers/gitignore/api/julia,rust,rust-analyzer
 
+**/**/input.txt
