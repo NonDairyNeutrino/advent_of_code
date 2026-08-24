@@ -13,20 +13,16 @@ fn parse_input(path: &Path) -> impl Iterator<Item = i16> {
     rot_strs.map(|rot_str| -> i16 { rot_str.parse::<i16>().unwrap_or_default() })
 }
 
-fn dial_pos(dial: i16) -> i16 {
-    (dial % DIALSIZE) + DIALSIZE * i16::from(dial.is_negative())
-}
+// fn dial_pos(dial: i16) -> i16 {
+//     (dial % DIALSIZE) + DIALSIZE * i16::from(dial.is_negative())
+// }
 
-fn print_dial(dial: i16) {
-    println!("Dial at {}", dial_pos(dial));
-}
-
-fn div_rem_euclid(lhs: i16, rhs: i16) -> (i16, i16) {
-    let q: i16 = lhs.div_euclid(rhs);
-    let r: i16 = lhs.rem_euclid(rhs);
-    assert_eq!(lhs, q * rhs + r);
-    (q, r)
-}
+// fn div_rem_euclid(lhs: i16, rhs: i16) -> (i16, i16) {
+//     let q: i16 = lhs.div_euclid(rhs);
+//     let r: i16 = lhs.rem_euclid(rhs);
+//     assert_eq!(lhs, q * rhs + r);
+//     (q, r)
+// }
 
 fn nhits(pre_rot: i16, post_rot: i16) -> i16 {
     // there are six cases (zero-equality is mod DIALSIZE)
@@ -39,15 +35,19 @@ fn nhits(pre_rot: i16, post_rot: i16) -> i16 {
     // pre < post < 0 : hits += qf - qi e.g. -101 -> -99 => hits += 1
     // let (qi, ri) = div_rem_euclid(pre_rot, DIALSIZE);
     // let (qf, rf) = div_rem_euclid(post_rot, DIALSIZE);
-    let pre_div = pre_rot.div_euclid(DIALSIZE) + 1 - i16::from(pre_rot.is_negative());
-    let post_div = post_rot.div_euclid(DIALSIZE) + 1 - i16::from(post_rot.is_negative());
-    let delta_div = post_div - pre_div;
-    let hits = if post_rot % DIALSIZE != 0 {
-        delta_div
-    } else {
-        delta_div + 1
+    let pre_div = pre_rot.div_euclid(DIALSIZE); // + i16::from(pre_rot.is_negative());
+    println!("{}", pre_div);
+    let post_div = post_rot.div_euclid(DIALSIZE); // + i16::from(post_rot.is_negative());
+    println!("{}", post_div);
+    let mut delta_div = post_div - pre_div;
+    if pre_rot % DIALSIZE == 0 {
+        return delta_div.abs() - 1;
     };
-    return hits;
+    return delta_div.abs();
+}
+
+fn print_dial(pre_rot: i16, post_rot: i16, hits: i16) {
+    println!("{} -> {}, hits = {}", pre_rot, post_rot, hits);
 }
 
 fn main() {
@@ -64,20 +64,15 @@ fn main() {
     let mut pre_rot: i16 = 0;
     let mut post_rot: i16 = 50;
     let mut hits: i16 = 0;
+    let mut new_hits: i16 = 0;
 
     roterator.for_each(|rot| {
         // update dial position
         pre_rot = post_rot;
         post_rot += rot;
-        println!(
-            "{} -> {}, hits = {}",
-            pre_rot,
-            post_rot,
-            nhits(pre_rot, post_rot)
-        );
-        // println!("Finish: {}");
-        // print_dial(post_rot);
-        hits += nhits(pre_rot, post_rot)
+        new_hits = nhits(pre_rot, post_rot);
+        print_dial(pre_rot, post_rot, new_hits);
+        hits += new_hits
     });
     println!("Final zero count: {}", hits);
 }
