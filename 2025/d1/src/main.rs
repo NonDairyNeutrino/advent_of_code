@@ -17,12 +17,12 @@ fn parse_input(path: &Path) -> impl Iterator<Item = i16> {
 //     (dial % DIALSIZE) + DIALSIZE * i16::from(dial.is_negative())
 // }
 
-// fn div_rem_euclid(lhs: i16, rhs: i16) -> (i16, i16) {
-//     let q: i16 = lhs.div_euclid(rhs);
-//     let r: i16 = lhs.rem_euclid(rhs);
-//     assert_eq!(lhs, q * rhs + r);
-//     (q, r)
-// }
+fn div_rem_euclid(lhs: i16, rhs: i16) -> (i16, i16) {
+    let q: i16 = lhs.div_euclid(rhs);
+    let r: i16 = lhs.rem_euclid(rhs);
+    assert_eq!(lhs, q * rhs + r);
+    (q, r)
+}
 
 fn nhits(pre_rot: i16, post_rot: i16) -> i16 {
     // there are six cases (zero-equality is mod DIALSIZE)
@@ -33,17 +33,16 @@ fn nhits(pre_rot: i16, post_rot: i16) -> i16 {
     // pre < 0 < post : hits += qf - qi e.g. -1 -> 1    => hits += 1
     // pre < 0 = post : hits += 1       e.g. -1 -> 0    => hits += 1
     // pre < post < 0 : hits += qf - qi e.g. -101 -> -99 => hits += 1
-    // let (qi, ri) = div_rem_euclid(pre_rot, DIALSIZE);
-    // let (qf, rf) = div_rem_euclid(post_rot, DIALSIZE);
-    let pre_div = pre_rot.div_euclid(DIALSIZE); // + i16::from(pre_rot.is_negative());
-    println!("{}", pre_div);
-    let post_div = post_rot.div_euclid(DIALSIZE); // + i16::from(post_rot.is_negative());
-    println!("{}", post_div);
-    let mut delta_div = post_div - pre_div;
-    if pre_rot % DIALSIZE == 0 {
-        return delta_div.abs() - 1;
-    };
-    return delta_div.abs();
+    let (qi, ri) = div_rem_euclid(pre_rot, DIALSIZE); // pre_rot == qi * DIALSIZE + ri
+    let (qf, rf) = div_rem_euclid(post_rot, DIALSIZE);
+    println!("{} -> {}", qi, qf);
+    let dq: i16 = qf - qi;
+    let mut hits: i16 = dq.abs();
+    if dq == 0 && rf == 0 {
+        hits += 1;
+    }
+    if ri == 0 {}
+    hits
 }
 
 fn print_dial(pre_rot: i16, post_rot: i16, hits: i16) {
@@ -51,13 +50,6 @@ fn print_dial(pre_rot: i16, post_rot: i16, hits: i16) {
 }
 
 fn main() {
-    // open the file
-    // read line into buffer
-    // replace L with -1 or R with nothing
-    // parse into integer
-    // only work in raw position, never mod
-    // count += abs(div(old_pos + rotation, DIALSIZE) - div(old_pos, DIALSIZE))
-    // repeat
     let args: Vec<String> = args().collect();
     let path: &Path = Path::new(&args[1]);
     let roterator = parse_input(path); // iterator over input lines that gives integers
@@ -67,7 +59,6 @@ fn main() {
     let mut new_hits: i16 = 0;
 
     roterator.for_each(|rot| {
-        // update dial position
         pre_rot = post_rot;
         post_rot += rot;
         new_hits = nhits(pre_rot, post_rot);
