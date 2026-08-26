@@ -14,9 +14,10 @@ fn main() {
     let args: Vec<String> = args().collect();
     let path: &Path = Path::new(&args[1]);
     let rangestrerator = parse_input(path); // iterator over input lines that gives integers
-    // let mut buffer = String::new();
     for rangestr in rangestrerator {
-        let str: String = String::from_utf8(rangestr.unwrap()).unwrap();
-        println!("{}", str);
+        let bytev: Vec<u8> = rangestr.unwrap();
+        let str: String = String::from_utf8(bytev).unwrap();
+        let mut range = str.split('-');
+        println!("{} - {}", range.next().unwrap(), range.next().unwrap());
     }
 }
