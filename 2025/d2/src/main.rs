@@ -43,14 +43,35 @@ fn parse_input(path: &Path) {
     let file: File = File::open(path).unwrap(); // open the file
     let mut reader: BufReader<File> = BufReader::new(file);
     let mut range_buff: Vec<u8> = vec![];
+    let mut lower: u128;
+    let mut upper: u128;
     while read_range(&mut reader, &mut range_buff) > 0 {
-        read_bounds(&range_buff);
+        (lower, upper) = read_bounds(&range_buff);
         range_buff.clear();
     }
 }
 
+fn get_digits(n: u128) -> Vec<u8> {
+    // add 1 because e.g. log10(1000) == 3 but 1000 has 4 digits
+    let ndigits: usize = (n.ilog10() + 1) as usize;
+    let mut digitv: Vec<u8> = Vec::with_capacity(ndigits as usize);
+    let mut digit: u128;
+    let mut ntemp: u128 = n;
+    for _ in 0..ndigits {
+        digit = ntemp % 10;
+        digitv.push(digit as u8);
+        ntemp = (ntemp - digit) / 10;
+    }
+    return digitv;
+}
+
+// fn is_valid(n: u128) -> bool {
+//     if
+// }
+
 fn main() {
     let args: Vec<String> = args().collect();
     let path: &Path = Path::new(&args[1]);
-    parse_input(path); // iterator over input lines that gives integers
+    // parse_input(path);
+    println!("{:?}", get_digits(1234567890))
 }
