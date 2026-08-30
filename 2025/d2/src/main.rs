@@ -21,6 +21,7 @@ fn boundbuff2str(reader: &mut Cursor<Vec<u8>>, bound_buff: &mut Vec<u8>, delim: 
     let _: Result<usize> = reader.read_until(delim, bound_buff);
     let bound_vec: Vec<u8> = bound_buff.split_last().unwrap().1.to_vec();
     let bound_str: String = String::from_utf8(bound_vec).unwrap();
+    // println!("{:?}", bound_str);
     let bound: u128 = bound_str.parse::<u128>().unwrap();
     bound
 }
@@ -75,7 +76,7 @@ fn get_digits(n: u128) -> Vec<u8> {
     return digitv;
 }
 
-fn is_valid(n: u128) -> bool {
+fn is_invalid(n: u128) -> bool {
     let digitv: Vec<u8> = get_digits(n);
     let mid = 0_usize.midpoint(digitv.len());
     let isvalid: bool = digitv[0..mid] == digitv[mid..];
@@ -101,7 +102,7 @@ fn main() {
             // println!("{:?}", is_valid(interval.0));
             // println!("{:?}", is_valid(interval.1));
             for n in interval.0..(interval.1 + 1) {
-                if is_valid(n) {
+                if is_invalid(n) {
                     // println!("{}", n);
                     acc += n
                 }
