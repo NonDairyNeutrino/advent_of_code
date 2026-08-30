@@ -65,13 +65,20 @@ fn get_digits(n: u128) -> Vec<u8> {
     return digitv;
 }
 
-// fn is_valid(n: u128) -> bool {
-//     if
-// }
+fn is_valid(n: u128) -> bool {
+    let digitv: Vec<u8> = get_digits(n);
+    let mid = 0_usize.midpoint(digitv.len());
+    let isvalid: bool = digitv[0..mid] == digitv[mid..];
+    println!("{} is {}valid", n, if !isvalid { "not " } else { "" });
+    return isvalid;
+}
 
 fn main() {
     let args: Vec<String> = args().collect();
     let path: &Path = Path::new(&args[1]);
-    // parse_input(path);
-    println!("{:?}", get_digits(1234567890))
+    parse_input(path);
+    println!("{:?}", get_digits(1234567890));
+    println!("{}", is_valid(1234567890));
+    println!("{:?}", get_digits(123123));
+    println!("{}", is_valid(123123));
 }
