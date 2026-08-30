@@ -7,13 +7,13 @@ fn read_range(reader: &mut BufReader<File>, range_buff: &mut Vec<u8>) -> usize {
     // returns the number of bytes that were placed into the buffer
     let nbytes: usize = reader.read_until(b',', range_buff).unwrap();
     // just to print
-    if let Some((_, elements)) = range_buff.split_last() {
-        let range_vec: Vec<u8> = elements.to_vec();
-        let range_str = String::from_utf8(range_vec).unwrap();
-        println!("range: {}", range_str);
-    } else {
-        println!("Reached end of file");
-    };
+    // if let Some((_, elements)) = range_buff.split_last() {
+    //     let range_vec: Vec<u8> = elements.to_vec();
+    //     let range_str = String::from_utf8(range_vec).unwrap();
+    //     println!("range: {}", range_str);
+    // } else {
+    //     println!("Reached end of file");
+    // };
     return nbytes;
 }
 
@@ -26,28 +26,37 @@ fn boundbuff2str(reader: &mut Cursor<Vec<u8>>, bound_buff: &mut Vec<u8>, delim: 
 }
 
 fn read_bounds(range_buff: &Vec<u8>) -> (u128, u128) {
+    if range_buff.is_empty() {
+        return (0, 0);
+    }
     let mut bound_buff: Vec<u8> = vec![];
     let mut reader: Cursor<Vec<u8>> = Cursor::new(range_buff.clone());
 
     let lower: u128 = boundbuff2str(&mut reader, &mut bound_buff, b'-');
-    println!("lower bound: {}", lower);
+    // println!("lower bound: {}", lower);
 
     bound_buff.clear(); // clear buffer to effectively replace string instead of append it
     let upper: u128 = boundbuff2str(&mut reader, &mut bound_buff, b',');
-    println!("upper bound: {}", upper);
+    // println!("upper bound: {}", upper);
 
     return (lower, upper);
 }
 
-fn parse_input(path: &Path) {
+fn parse_input(path: &Path) -> impl FnMut() -> (u128, u128) {
     let file: File = File::open(path).unwrap(); // open the file
     let mut reader: BufReader<File> = BufReader::new(file);
     let mut range_buff: Vec<u8> = vec![];
-    let mut lower: u128;
-    let mut upper: u128;
-    while read_range(&mut reader, &mut range_buff) > 0 {
+    let mut lower: u128 = 0;
+    let mut upper: u128 = 0;
+    // while read_range(&mut reader, &mut range_buff) > 0 {
+    //     (lower, upper) = read_bounds(&range_buff);
+    //     range_buff.clear();
+    // }
+    move || -> (u128, u128) {
+        read_range(&mut reader, &mut range_buff);
         (lower, upper) = read_bounds(&range_buff);
         range_buff.clear();
+        return (lower, upper);
     }
 }
 
@@ -62,6 +71,7 @@ fn get_digits(n: u128) -> Vec<u8> {
         digitv.push(digit as u8);
         ntemp = (ntemp - digit) / 10;
     }
+    digitv.reverse();
     return digitv;
 }
 
@@ -69,16 +79,34 @@ fn is_valid(n: u128) -> bool {
     let digitv: Vec<u8> = get_digits(n);
     let mid = 0_usize.midpoint(digitv.len());
     let isvalid: bool = digitv[0..mid] == digitv[mid..];
-    println!("{} is {}valid", n, if !isvalid { "not " } else { "" });
+    // println!("{} is {}valid", n, if !isvalid { "not " } else { "" });
     return isvalid;
 }
 
 fn main() {
     let args: Vec<String> = args().collect();
     let path: &Path = Path::new(&args[1]);
-    parse_input(path);
-    println!("{:?}", get_digits(1234567890));
-    println!("{}", is_valid(1234567890));
-    println!("{:?}", get_digits(123123));
-    println!("{}", is_valid(123123));
+    let mut get_range = parse_input(path);
+    let mut interval: (u128, u128);
+    let mut acc: u128 = 0;
+    loop {
+        interval = get_range();
+        if interval == (0, 0) {
+            break;
+        } else {
+            // println!("interval: {:?}", interval);
+            // // println!("lower: {}, upper: {}", interval.0, interval.1);
+            // println!("{:?}", get_digits(interval.0));
+            // println!("{:?}", get_digits(interval.1));
+            // println!("{:?}", is_valid(interval.0));
+            // println!("{:?}", is_valid(interval.1));
+            for n in interval.0..(interval.1 + 1) {
+                if is_valid(n) {
+                    // println!("{}", n);
+                    acc += n
+                }
+            }
+        }
+    }
+    println!("{}", acc)
 }
