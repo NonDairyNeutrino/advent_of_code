@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::env::args;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Cursor, Result};
@@ -78,10 +79,22 @@ fn get_digits(n: u128) -> Vec<u8> {
 
 fn is_invalid(n: u128) -> bool {
     let digitv: Vec<u8> = get_digits(n);
-    let mid = 0_usize.midpoint(digitv.len());
-    let isvalid: bool = digitv[0..mid] == digitv[mid..];
-    // println!("{} is {}valid", n, if !isvalid { "not " } else { "" });
-    return isvalid;
+    // convert vector of digits to dequeue to be able to pop_front
+    let digitq: VecDeque<u8> = VecDeque::with_capacity(digitv.len());
+    digitv.iter().for_each(|e| digitq.push_back(*e));
+    let mut seq: Vec<u8> = Vec::new();
+    let digit: u8;
+    // let mid = 0_usize.midpoint(digitv.len());
+    // let isvalid: bool = digitv[0..mid] == digitv[mid..];
+    // // println!("{} is {}valid", n, if !isvalid { "not " } else { "" });
+    // return isvalid;
+    digit = digitq.pop_front().unwrap();
+    seq.push(digit);
+    if seq == digitq[0..(seq.len() + 1)] && digitv.len().is_multiple_of(seq.len()) {
+        return true;
+    } else {
+        // loop
+    }
 }
 
 fn main() {
@@ -95,18 +108,18 @@ fn main() {
         if interval == (0, 0) {
             break;
         } else {
-            // println!("interval: {:?}", interval);
-            // // println!("lower: {}, upper: {}", interval.0, interval.1);
-            // println!("{:?}", get_digits(interval.0));
-            // println!("{:?}", get_digits(interval.1));
-            // println!("{:?}", is_valid(interval.0));
-            // println!("{:?}", is_valid(interval.1));
-            for n in interval.0..(interval.1 + 1) {
-                if is_invalid(n) {
-                    // println!("{}", n);
-                    acc += n
-                }
-            }
+            println!("interval: {:?}", interval);
+            // println!("lower: {}, upper: {}", interval.0, interval.1);
+            println!("{:?}", get_digits(interval.0));
+            println!("{:?}", get_digits(interval.1));
+            println!("{:?}", is_invalid(interval.0));
+            println!("{:?}", is_invalid(interval.1));
+            // for n in interval.0..(interval.1 + 1) {
+            //     if is_invalid(n) {
+            //         // println!("{}", n);
+            //         acc += n
+            //     }
+            // }
         }
     }
     println!("{}", acc)
