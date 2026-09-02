@@ -80,7 +80,7 @@ fn get_digits(n: u128) -> Vec<u8> {
 fn is_invalid(n: u128) -> bool {
     let digitv: Vec<u8> = get_digits(n);
     // convert vector of digits to dequeue to be able to pop_front
-    let digitq: VecDeque<u8> = VecDeque::with_capacity(digitv.len());
+    let mut digitq: VecDeque<u8> = VecDeque::with_capacity(digitv.len());
     digitv.iter().for_each(|e| digitq.push_back(*e));
     let mut seq: Vec<u8> = Vec::new();
     let digit: u8;
@@ -88,13 +88,13 @@ fn is_invalid(n: u128) -> bool {
     // let isvalid: bool = digitv[0..mid] == digitv[mid..];
     // // println!("{} is {}valid", n, if !isvalid { "not " } else { "" });
     // return isvalid;
+
+    // begin loop
     digit = digitq.pop_front().unwrap();
     seq.push(digit);
-    if seq == digitq[0..(seq.len() + 1)] && digitv.len().is_multiple_of(seq.len()) {
-        return true;
-    } else {
-        // loop
-    }
+    let seqlen: usize = seq.len();
+    // test if the next digits match the sequence
+    seq.iter().zip(digitq[0..seqlen]).all(|e| e.0 == e.1);
 }
 
 fn main() {
