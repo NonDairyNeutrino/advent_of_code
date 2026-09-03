@@ -2,6 +2,7 @@ use std::collections::VecDeque;
 use std::env::args;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Cursor, Result};
+use std::iter::zip;
 use std::path::Path;
 
 fn read_range(reader: &mut BufReader<File>, range_buff: &mut Vec<u8>) -> usize {
@@ -94,7 +95,16 @@ fn is_invalid(n: u128) -> bool {
     seq.push(digit);
     let seqlen: usize = seq.len();
     // test if the next digits match the sequence
-    seq.iter().zip(digitq[0..seqlen]).all(|e| e.0 == e.1);
+    // seq.iter().zip(digitq[..seqlen]).all(|e| e.0 == e.1);
+    // for i in 0..seqlen {
+    //     if seq[i] == digitq[i] {
+    //         continue;
+    //     } else {
+    //         break;
+    //     }
+    // }
+    // test if the number contains only repetitions
+    return true;
 }
 
 fn main() {
