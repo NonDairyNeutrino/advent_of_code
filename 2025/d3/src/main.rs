@@ -4,22 +4,29 @@ use std::io::{BufRead, BufReader, Lines, Result};
 use std::path::Path;
 
 // find the index and value of the rightmost largest number
-fn find_max(v: &Vec<char>) -> (usize, char) {
-    let max: char = *(v.iter().max().unwrap());
+fn find_max(v: &Vec<char>) -> Option<(usize, char)> {
+    let max: char;
+    if let Some(x) = v.iter().max() {
+        max = *x;
+    } else {
+        return None;
+    }
     let mut max_ind: usize = v.len() + 1;
     for i in (0..v.len()).rev() {
         if v[i] == max {
             max_ind = i;
         }
     }
-    return (max_ind, max);
+    return Some((max_ind, max));
 }
 
 fn kernel(charv: Vec<char>, joltage: &mut Vec<char>) {
-    let (max_ind, max): (usize, char) = find_max(&charv);
-    if charv.is_empty() {
-        joltage.push(max);
-        kernel(charv[0..max_ind].to_vec(), joltage);
+    println!("joltage: {:?}", joltage);
+    if let Some((max_ind, max)) = find_max(&charv) {
+        if !charv.is_empty() {
+            joltage.push(max);
+            kernel(charv[0..max_ind].to_vec(), joltage);
+        }
     }
 }
 
