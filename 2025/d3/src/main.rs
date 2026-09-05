@@ -25,7 +25,12 @@ fn kernel(charv: Vec<char>, joltage: &mut Vec<char>) {
     if let Some((max_ind, max)) = find_max(&charv) {
         if !charv.is_empty() {
             joltage.push(max);
-            kernel(charv[0..max_ind].to_vec(), joltage);
+            // only consider the digits to the left
+            if joltage[0] == '9' {
+                kernel(charv[(max_ind + 1)..].to_vec(), joltage);
+            } else {
+                kernel(charv[..max_ind].to_vec(), joltage);
+            }
         }
     }
 }
@@ -38,7 +43,11 @@ fn parse_input(path: &Path) -> impl Iterator<Item = u128> {
         let charv: Vec<_> = line.unwrap().chars().collect::<Vec<_>>();
         let mut joltage: Vec<char> = Vec::new();
         kernel(charv, &mut joltage);
-        let joltage_string: String = joltage.iter().rev().collect::<String>();
+        let joltage_string: String = if joltage[0] == '9' {
+            joltage.iter().collect::<String>()
+        } else {
+            joltage.iter().rev().collect::<String>()
+        };
         joltage_string.parse::<u128>().unwrap()
     });
     return joltagerator;
@@ -49,4 +58,5 @@ fn main() {
     let path: &Path = Path::new(&args[1]);
     let joltagerator = parse_input(path);
     joltagerator.for_each(|j| println!("{:?}", j));
+    // println!("{}", joltagerator.sum::<u128>());
 }
