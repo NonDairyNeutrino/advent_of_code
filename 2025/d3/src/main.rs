@@ -30,16 +30,16 @@ fn kernel(charv: Vec<char>, joltage: &mut Vec<char>) {
     }
 }
 
-fn parse_input(path: &Path) -> impl Iterator<Item = u8> {
+fn parse_input(path: &Path) -> impl Iterator<Item = u128> {
     let file: File = File::open(path).unwrap(); // open the file
     let reader: BufReader<File> = BufReader::new(file);
     let lineterator: Lines<BufReader<File>> = reader.lines();
-    let joltagerator = lineterator.map(|line: Result<String>| -> u8 {
+    let joltagerator = lineterator.map(|line: Result<String>| -> u128 {
         let charv: Vec<_> = line.unwrap().chars().collect::<Vec<_>>();
         let mut joltage: Vec<char> = Vec::new();
         kernel(charv, &mut joltage);
         let joltage_string: String = joltage.iter().rev().collect::<String>();
-        joltage_string.parse::<u8>().unwrap()
+        joltage_string.parse::<u128>().unwrap()
     });
     return joltagerator;
 }
