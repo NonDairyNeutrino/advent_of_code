@@ -21,7 +21,7 @@ fn find_max(v: &Vec<char>) -> Option<(usize, char)> {
 }
 
 fn kernel(charv: Vec<char>, joltage: &mut Vec<char>) {
-    println!("joltage: {:?}", joltage);
+    println!("charv: {:?}, joltage: {:?}", charv, joltage);
     if let Some((max_ind, max)) = find_max(&charv) {
         if !charv.is_empty() {
             joltage.push(max);
@@ -30,15 +30,16 @@ fn kernel(charv: Vec<char>, joltage: &mut Vec<char>) {
     }
 }
 
-fn parse_input(path: &Path) -> impl Iterator<Item = Vec<char>> {
+fn parse_input(path: &Path) -> impl Iterator<Item = u8> {
     let file: File = File::open(path).unwrap(); // open the file
     let reader: BufReader<File> = BufReader::new(file);
     let lineterator: Lines<BufReader<File>> = reader.lines();
-    let joltagerator = lineterator.map(|line: Result<String>| {
+    let joltagerator = lineterator.map(|line: Result<String>| -> u8 {
         let charv: Vec<_> = line.unwrap().chars().collect::<Vec<_>>();
         let mut joltage: Vec<char> = Vec::new();
         kernel(charv, &mut joltage);
-        return joltage;
+        let joltage_string: String = joltage.iter().rev().collect::<String>();
+        joltage_string.parse::<u8>().unwrap()
     });
     return joltagerator;
 }
@@ -46,6 +47,6 @@ fn parse_input(path: &Path) -> impl Iterator<Item = Vec<char>> {
 fn main() {
     let args: Vec<String> = args().collect();
     let path: &Path = Path::new(&args[1]);
-    let mut joltagerator = parse_input(path);
-    println!("{:?}", joltagerator.next().unwrap())
+    let joltagerator = parse_input(path);
+    joltagerator.for_each(|j| println!("{:?}", j));
 }
