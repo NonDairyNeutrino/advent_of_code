@@ -26,7 +26,7 @@ fn kernel(charv: Vec<char>, joltage: &mut Vec<char>) {
         if !charv.is_empty() {
             joltage.push(max);
             // only consider the digits to the left
-            if joltage[0] == '9' {
+            if joltage[0] == '9' && max_ind != (charv.len() - 1) {
                 kernel(charv[(max_ind + 1)..].to_vec(), joltage);
             } else {
                 kernel(charv[..max_ind].to_vec(), joltage);
