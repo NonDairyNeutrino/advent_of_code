@@ -30,19 +30,24 @@ fn get_neighbors(grid: &Vec<char>, i: usize, j: usize, radius: usize) -> Vec<(us
     // let n_neighbors: usize = (2 * radius + 1).pow(2) - 1; // get the manhattan area of the annulus
     let mut neighbors: Vec<(usize, usize)> = Vec::new();
 
-    for r in (i - radius)..(i + radius + 1) {
-        println!("r = {r}");
-        if r < 0 || r > nrows {
+    let top: i64 = (i as i64) - (radius as i64);
+    let bot: i64 = (i as i64) + (radius as i64) + 1;
+    let left: i64 = (j as i64) - (radius as i64);
+    let right: i64 = (j as i64) + (radius as i64) + 1;
+
+    for r in top..bot {
+        // println!("r = {r}");
+        if r < 0 || r > (nrows as i64) {
             continue;
         }
-        for c in (j - radius)..(j + radius + 1) {
-            if c < 0 || c > nrows {
+        for c in left..right {
+            if c < 0 || c > (ncols as i64) {
                 continue;
             }
-            if (r, c) == (i, j) {
+            if (r, c) == (i as i64, j as i64) {
                 continue;
             }
-            neighbors.push((r, c));
+            neighbors.push((r as usize, c as usize));
         }
     }
     return neighbors;
@@ -103,7 +108,7 @@ fn parse_input(path: &Path) {
     let file_string: String = read_to_string(path).unwrap();
     let grid: Vec<char> = file_string.chars().collect();
     // println!("{:?}", grid);
-    println!("{:?}", get_neighbors(&grid, 2, 2, 2))
+    println!("{:?}", get_neighbors(&grid, 0, 0, 1))
     // let rows: Vec<&str> = file_string.split('\n').collect();
     // let grid: Vec<Chars> = rows.iter().map(|row| row.chars()).collect();
 }
