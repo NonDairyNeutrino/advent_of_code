@@ -106,7 +106,7 @@ fn main() {
     //     is_accessible(&grid, site.0, site.1, limit)
     // )
     let (nrows, ncols): (usize, usize) = get_grid_size(&grid);
-    let mut n_acc: u8 = 0;
+    let mut n_acc: u16 = 0;
     let mut roll_sites: Vec<(usize, usize)> = Vec::new();
 
     for row in 0..nrows {
