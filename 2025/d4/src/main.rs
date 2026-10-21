@@ -3,6 +3,12 @@ use std::fs::{/* File, */ read_to_string};
 use std::path::Path;
 // use std::str::Chars;
 
+fn parse_input(path: &Path) -> Vec<char> {
+    let file_string: String = read_to_string(path).unwrap();
+    let grid: Vec<char> = file_string.chars().collect();
+    return grid;
+}
+
 fn get_grid_size(grid: &Vec<char>) -> (usize, usize) {
     let nrows: usize = grid.iter().filter(|c| **c == '\n').count() + 1;
     // n_elements = n_rows * n_cols ==> n_cols = n_elements / nrows
@@ -11,29 +17,44 @@ fn get_grid_size(grid: &Vec<char>) -> (usize, usize) {
     return (nrows, ncols);
 }
 
-fn is_roll(grid: &Vec<char>, i: usize, j: usize) -> bool {
-    let ncols: usize = get_grid_size(grid).1 + 1; // + 1 to account for \n in indexing
-    let row: usize = ncols * i;
-    let col: usize = j;
+fn site_to_index(ncols: usize, site: (usize, usize)) -> usize {
+    let row: usize = ncols * site.0;
+    let col: usize = site.1;
     let idx: usize = row + col;
-    // println!("i: {i}, j: {j}, idx: {idx}");
+    return idx;
+}
+
+fn is_roll(grid: &Vec<char>, site: (usize, usize)) -> bool {
+    let ncols: usize = get_grid_size(grid).1 + 1; // + 1 to account for \n in indexing
+    let idx: usize = site_to_index(ncols, site);
     return grid[idx] == '@';
 }
 
-// fn is_edge(grid: &Vec<char>, i: usize, j: usize) -> bool {
-//     let (nrows, ncols): (usize, usize) = get_grid_size(grid);
-//     let is_top: bool = i == 0;
-//     let is_bot: bool = i == nrows;
-//     let is_left: bool = j == 0;
-//     let is_right: bool = j == ncols;
-//     return is_top || is_bot || is_left || is_right;
-// }
+fn find_rolls(grid: &Vec<char>) -> Vec<(usize, usize)> {
+    let (nrows, ncols): (usize, usize) = get_grid_size(&grid);
+    let mut roll_sites: Vec<(usize, usize)> = Vec::new();
 
-fn get_neighbors(grid: &Vec<char>, i: usize, j: usize, radius: usize) -> Vec<(usize, usize)> {
-    let (nrows, ncols): (usize, usize) = get_grid_size(grid);
+    for row in 0..nrows {
+        for col in 0..ncols {
+            if is_roll(&grid, (row, col)) {
+                roll_sites.push((row, col));
+            }
+        }
+    }
+
+    return roll_sites;
+}
+
+fn get_neighbors(
+    dims: (usize, usize),
+    site: &(usize, usize),
+    radius: usize,
+) -> Vec<(usize, usize)> {
+    let (nrows, ncols): (usize, usize) = dims;
     // let n_neighbors: usize = (2 * radius + 1).pow(2) - 1; // get the manhattan area of the annulus
     let mut neighbors: Vec<(usize, usize)> = Vec::new();
 
+    let (i, j): (usize, usize) = *site;
     let top: i64 = (i as i64) - (radius as i64);
     let bot: i64 = (i as i64) + (radius as i64) + 1;
     let left: i64 = (j as i64) - (radius as i64);
@@ -57,71 +78,73 @@ fn get_neighbors(grid: &Vec<char>, i: usize, j: usize, radius: usize) -> Vec<(us
     return neighbors;
 }
 
-fn is_accessible(grid: &Vec<char>, i: usize, j: usize, radius: usize, limit: u8) -> bool {
-    // let isroll: bool = is_roll(grid, i, j);
-    // if !isroll {
-    //     println!("{:?} is not a roll", (i, j));
-    //     return false;
-    // }
-    // ASSUME IT'S A ROLL
+fn is_accessible(
+    dims: (usize, usize),
+    sites: &Vec<(usize, usize)>,
+    site: &(usize, usize),
+    radius: usize,
+    limit: u8,
+) -> bool {
     let mut acc: u8 = 0;
-    // let radius: usize = 1;
-    let neighbors: Vec<(usize, usize)> = get_neighbors(grid, i, j, radius);
+    let neighbors: Vec<(usize, usize)> = get_neighbors(dims, site, radius);
 
     for neighbor in neighbors {
-        if is_roll(grid, neighbor.0, neighbor.1) {
-            // println!("Neighbor {neighbor:?} is a roll");
+        if sites.contains(&neighbor) {
             acc += 1;
-            // short circuit as soon as possible
-            if acc >= limit {
-                return false;
-            }
         }
     }
-    return true;
+    return acc < limit;
 }
 
-fn parse_input(path: &Path) -> Vec<char> {
-    let file_string: String = read_to_string(path).unwrap();
-    let grid: Vec<char> = file_string.chars().collect();
-    return grid;
+fn find_accessible(
+    roll_sites: &Vec<(usize, usize)>,
+    dims: (usize, usize),
+    radius: usize,
+    limit: u8,
+) -> Vec<usize> {
+    let mut accessible: Vec<usize> = Vec::new();
+    for idx in 0..roll_sites.len() {
+        let site: (usize, usize) = roll_sites[idx];
+        if is_accessible(dims, &roll_sites, &site, radius, limit) {
+            accessible.push(idx);
+        }
+    }
+    return accessible;
+}
+
+fn find_and_remove(
+    roll_sites: &mut Vec<(usize, usize)>,
+    dims: (usize, usize),
+    radius: usize,
+    limit: u8,
+) -> usize {
+    let accessible = find_accessible(&roll_sites, dims, radius, limit);
+    if accessible.is_empty() {
+        return 0;
+    }
+    println!("Found {} accessible rolls", accessible.len());
+    // remove accessible rolls from roll sites
+    for i in 0..accessible.len() {
+        let idx: usize = accessible[i];
+        roll_sites.remove(idx - i);
+    }
+    return accessible.len() + find_and_remove(roll_sites, dims, radius, limit);
 }
 
 fn main() {
+    let radius: usize = 1;
+    let limit: u8 = 4;
+
     let args: Vec<String> = args().collect();
     let path: &Path = Path::new(&args[1]);
     let grid: Vec<char> = parse_input(path);
-    // let site: (usize, usize) = (0, 2);
-    let radius: usize = 1;
-    let limit: u8 = 4;
-    // println!("{grid:?}");
-    // println!("Grid size: {:?}", get_grid_size(&grid));
-    // println!("{site:?} is a roll: {}", is_roll(&grid, site.0, site.1));
-    // println!(
-    //     "{site:?} neighbors: {:?}",
-    //     get_neighbors(&grid, site.0, site.1, radius)
-    // );
-    // println!(
-    //     "{site:?} is accessible: {:?}",
-    //     is_accessible(&grid, site.0, site.1, limit)
-    // )
-    let (nrows, ncols): (usize, usize) = get_grid_size(&grid);
-    let mut n_acc: u16 = 0;
-    let mut roll_sites: Vec<(usize, usize)> = Vec::new();
 
-    for row in 0..nrows {
-        for col in 0..ncols {
-            if is_roll(&grid, row, col) {
-                roll_sites.push((row, col));
-            }
-        }
-    }
-    println!("rolls: {roll_sites:?}");
+    let dims: (usize, usize) = get_grid_size(&grid);
+    // get list of roll sites
+    let mut roll_sites: Vec<(usize, usize)> = find_rolls(&grid);
+    // determine which rolls are accessible
+    let acc_tot: usize = find_and_remove(&mut roll_sites, dims, radius, limit);
+    println!("{acc_tot}");
 
-    for roll_site in roll_sites {
-        if is_accessible(&grid, roll_site.0, roll_site.1, radius, limit) {
-            n_acc += 1;
-        }
-    }
-    println!("{n_acc}")
+    // println!("Number of accessible rolls: {}", roll_sites.len())
 }
