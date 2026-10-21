@@ -25,9 +25,29 @@ fn parse_input(path: &Path) -> (Vec<(u64, u64)>, Vec<u64>) {
     return (ranges, ids);
 }
 
+fn is_fresh_single(id: u64, range: (u64, u64)) -> bool {
+    let (lb, ub) = range;
+    let above: bool = lb <= id;
+    let below: bool = id <= ub;
+    let isfresh: bool = above && below;
+    return isfresh;
+}
+
+fn is_fresh(id: u64, ranges: &Vec<(u64, u64)>) -> bool {
+    let isfresh: bool = ranges.iter().any(|range| is_fresh_single(id, *range));
+    if isfresh {
+        println!("{id} is fresh")
+    } else {
+        println!("{id} is spoiled")
+    }
+    return isfresh;
+}
+
 fn main() {
     let args: Vec<String> = args().collect();
     let path: &Path = Path::new(&args[1]);
     let (ranges, ids): (Vec<(u64, u64)>, Vec<u64>) = parse_input(path);
-    println!("ranges: {ranges:?}; ids: {ids:?}")
+    println!("ranges: {ranges:?}; ids: {ids:?}");
+    let fresh_count: usize = ids.iter().filter(|id| is_fresh(**id, &ranges)).count();
+    println!("{fresh_count}");
 }
