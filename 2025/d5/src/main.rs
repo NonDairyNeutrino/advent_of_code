@@ -110,12 +110,14 @@ fn reduce_recursive(domain: &mut Vec<(u64, u64)>) {
             // domain.push(*dom);
         }
     }
-    println!("Unions complete; removing");
-    for r in 0..removed.len() {
-        println!("Removing {:?}", domain[removed[r]]);
-        domain.remove(removed[r] - r);
+    removed.sort();
+    let rem_len: usize = removed.len();
+    println!("Unions complete; removing {rem_len} intervals");
+    for r in 0..rem_len {
+        println!("Removing {:?}", domain[removed[(rem_len - 1) - r]]);
+        domain.remove(removed[(rem_len - 1) - r]);
     }
-    println!("extras removed; domain is now {domain:?}");
+    println!("overlaps removed; domain is now {domain:?}");
     // if no intervals were merged, then return
     if acc == domain.len() {
         return;
