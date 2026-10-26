@@ -79,7 +79,10 @@ fn parse_input() -> Vec<Problem> {
 
 fn main() {
     let probs: Vec<Problem> = parse_input();
+    let mut acc: u128 = 0;
     for prob in probs {
-        println!("prob: {prob:?}, solution: {}", prob.solve())
+        let sol: u128 = prob.solve();
+        acc += sol;
+        println!("prob: {prob:?}, solution: {sol}, total: {acc}")
     }
 }
