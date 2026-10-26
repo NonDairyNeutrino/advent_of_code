@@ -6,12 +6,29 @@ use std::{
     process::exit,
 };
 
+#[derive(Debug)]
 struct Problem {
     args: Vec<u128>,
     op: String,
 }
 
-fn parse_input() {
+trait Solve {
+    fn solve(&self) -> u128;
+}
+
+impl Solve for Problem {
+    fn solve(&self) -> u128 {
+        let arg_iter = self.args.iter();
+        match self.op.as_str() {
+            "+" => arg_iter.sum(),
+            // "-" => self.args[0] - self.args[1..].iter().sum::<u128>(),
+            "*" => arg_iter.product(),
+            &_ => panic!(),
+        }
+    }
+}
+
+fn parse_input() -> Vec<Problem> {
     let args: Vec<String> = args().collect();
     if args.len() == 1 {
         eprintln!("Where's the input dumbass?");
@@ -24,16 +41,17 @@ fn parse_input() {
         .lines()
         .map(|line| line.unwrap())
         .collect();
-    println!("lines: {:?}", lines);
+    // println!("lines: {:?}", lines);
 
     let mut arg_vecs: Vec<Vec<&str>> = lines
         .iter()
         .map(|line| line.split_whitespace().collect::<Vec<&str>>())
         .collect();
-    println!("arg_vecs: {:?}", arg_vecs);
+    // println!("arg_vecs: {:?}", arg_vecs);
 
     let ops: Vec<&str> = arg_vecs.pop().unwrap();
-    println!("ops: {ops:?}");
+    // println!("ops: {ops:?}");
+
     let items: Vec<Vec<u128>> = arg_vecs
         .iter()
         .map(|av| {
@@ -42,11 +60,26 @@ fn parse_input() {
                 .collect()
         })
         .collect();
-    println!("items, {:?}", items);
+    // println!("items: {:?}", items);
 
     // allocate Problems
+    let nproblems: usize = items[0].len();
+    let mut probs: Vec<Problem> = Vec::with_capacity(nproblems);
+
+    for p in 0..nproblems {
+        let prob: Problem = Problem {
+            args: items.iter().map(|av| av[p]).collect(),
+            op: ops[p].to_owned(),
+        };
+        probs.push(prob);
+    }
+
+    return probs;
 }
 
 fn main() {
-    parse_input();
+    let probs: Vec<Problem> = parse_input();
+    for prob in probs {
+        println!("prob: {prob:?}, solution: {}", prob.solve())
+    }
 }
