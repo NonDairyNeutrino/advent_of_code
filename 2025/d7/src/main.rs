@@ -27,41 +27,50 @@ fn create_out() -> File {
     return File::open(Path::new(out_name)).unwrap();
 }
 
-fn find_source(file_string: &String) -> (usize, usize) {
-    let source_col = file_string
+fn find_source(file_string: &String) -> usize {
+    let source_pos = file_string
         .match_indices('S')
         .map(|pair| pair.0)
         .next()
         .unwrap();
-    return (0_usize, source_col);
+    return source_pos;
 }
 
-fn put_beam(file: &File, pos: u64) {
-    if let Ok(bytes) = file.write_at("|".as_bytes(), pos) {
-        println!("{bytes} written")
-    } else {
-        panic!("Nothing written!")
-    }
+fn linear2coords(pos: usize, row_len: usize) -> (usize, usize) {
+    let row: usize = pos.div_euclid(row_len);
+    let col: usize = pos.rem_euclid(row_len);
+    return (row, col);
 }
 
-fn print_file(file: &mut File, buff: &mut String) {
-    buff.clear();
-    let _ = file.seek(std::io::SeekFrom::Start(0));
-    let _ = file.read_to_string(buff);
-    println!("{buff}");
+fn find_splitters(file_string: &String, row_len: usize) -> Vec<(usize, usize)> {
+    let splitters = file_string
+        .match_indices('^')
+        .map(|pair| linear2coords(pair.0, row_len))
+        .collect();
+    return splitters;
+}
+
+fn put_beam(out: &mut String, pos: usize) {
+    out.replace_range(pos..pos, "|");
+    return;
 }
 
 fn main() {
     let mut out_file: File = create_out(); // create output.txt that's a copy of the input
-    let mut out_buf: String = String::new();
+    let mut out_buff: String = String::new();
+    let _ = out_file.read_to_string(&mut out_buff);
+    println!("{out_buff}");
+    let row_len: usize = out_buff.find('\n').unwrap() + 1;
+    println!("Number of spaces = {row_len}");
 
-    print_file(&mut out_file, &mut out_buf);
+    let source_pos: usize = find_source(&out_buff);
+    println!("source at = {source_pos}");
 
-    let source_pos: (usize, usize) = find_source(&out_buf);
-    println!("source = {source_pos:?}");
+    let splitters: Vec<(usize, usize)> = find_splitters(&out_buff, row_len);
+    println!("splitters at {splitters:?}");
 
-    put_beam(&out_file, source_pos.0 as u64);
-    print_file(&mut out_file, &mut out_buf);
+    put_beam(&mut out_buff, source_pos);
+    println!("{out_buff}")
 
     // let lineterator: Lines<BufReader<File>> = parse_input();
     // for (row, line_res) in lineterator.enumerate() {
