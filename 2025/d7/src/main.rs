@@ -1,8 +1,7 @@
 use std::{
-    collections::{HashSet, hash_set::Union},
     env::{Args, args},
     fs::{File, copy},
-    io::{BufRead, BufReader, Lines, Read},
+    io::{BufRead, BufReader, Lines, Read, Seek},
     os::unix::fs::FileExt,
     path::Path,
 };
@@ -38,23 +37,31 @@ fn find_source(file_string: &String) -> (usize, usize) {
 }
 
 fn put_beam(file: &File, pos: u64) {
-    let _ = file.write_at("|".as_bytes(), pos);
+    if let Ok(bytes) = file.write_at("|".as_bytes(), pos) {
+        println!("{bytes} written")
+    } else {
+        panic!("Nothing written!")
+    }
+}
+
+fn print_file(file: &mut File, buff: &mut String) {
+    buff.clear();
+    let _ = file.seek(std::io::SeekFrom::Start(0));
+    let _ = file.read_to_string(buff);
+    println!("{buff}");
 }
 
 fn main() {
     let mut out_file: File = create_out(); // create output.txt that's a copy of the input
     let mut out_buf: String = String::new();
 
-    let _ = out_file.read_to_string(&mut out_buf);
-    println!("{:?}", out_buf);
+    print_file(&mut out_file, &mut out_buf);
 
     let source_pos: (usize, usize) = find_source(&out_buf);
     println!("source = {source_pos:?}");
 
     put_beam(&out_file, source_pos.0 as u64);
-    out_buf.clear();
-    let _ = out_file.read_to_string(&mut out_buf);
-    println!("{:?}", out_buf);
+    print_file(&mut out_file, &mut out_buf);
 
     // let lineterator: Lines<BufReader<File>> = parse_input();
     // for (row, line_res) in lineterator.enumerate() {
