@@ -42,16 +42,29 @@ fn linear2coords(pos: usize, row_len: usize) -> (usize, usize) {
     return (row, col);
 }
 
+fn coords2linear(row_len: usize, row: usize, col: usize) -> usize {
+    return row * row_len + col;
+}
+
 fn find_splitters(file_string: &String, row_len: usize) -> Vec<(usize, usize)> {
-    let splitters = file_string
+    let splitters: Vec<(usize, usize)> = file_string
         .match_indices('^')
         .map(|pair| linear2coords(pair.0, row_len))
         .collect();
     return splitters;
 }
 
-fn put_beam(out: &mut String, pos: usize) {
-    out.replace_range(pos..(pos + 1), "|");
+fn find_beams(file_string: &String, row_len: usize) -> Vec<(usize, usize)> {
+    let beams: Vec<(usize, usize)> = file_string
+        .match_indices('|')
+        .map(|pair| linear2coords(pair.0, row_len))
+        .collect();
+    return beams;
+}
+
+fn put_beam(out: &mut String, splitter_pos: (usize, usize), row_len: usize) {
+    let beam_pos: usize = coords2linear(row_len, splitter_pos.0 + 1, splitter_pos.1);
+    out.replace_range(beam_pos..(beam_pos + 1), "|");
     return;
 }
 
@@ -63,14 +76,17 @@ fn main() {
     let row_len: usize = out_buff.find('\n').unwrap() + 1;
     // println!("Number of spaces = {row_len}");
 
-    let source_pos: usize = find_source(&out_buff);
-    println!("source at = {source_pos}");
+    let source_pos: (usize, usize) = linear2coords(find_source(&out_buff), row_len);
+    println!("source at = {source_pos:?}");
 
     let splitters: Vec<(usize, usize)> = find_splitters(&out_buff, row_len);
     println!("splitters at {splitters:?}");
 
-    put_beam(&mut out_buff, source_pos);
-    println!("{out_buff}")
+    put_beam(&mut out_buff, source_pos, row_len);
+    println!("{out_buff}");
+
+    let beams: Vec<(usize, usize)> = find_beams(&mut out_buff, row_len);
+    println!("beams = {beams:?}")
 
     // let lineterator: Lines<BufReader<File>> = parse_input();
     // for (row, line_res) in lineterator.enumerate() {
