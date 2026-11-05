@@ -51,7 +51,7 @@ fn find_splitters(file_string: &String, row_len: usize) -> Vec<(usize, usize)> {
 }
 
 fn put_beam(out: &mut String, pos: usize) {
-    out.replace_range(pos..pos, "|");
+    out.replace_range(pos..(pos + 1), "|");
     return;
 }
 
@@ -61,7 +61,7 @@ fn main() {
     let _ = out_file.read_to_string(&mut out_buff);
     println!("{out_buff}");
     let row_len: usize = out_buff.find('\n').unwrap() + 1;
-    println!("Number of spaces = {row_len}");
+    // println!("Number of spaces = {row_len}");
 
     let source_pos: usize = find_source(&out_buff);
     println!("source at = {source_pos}");
