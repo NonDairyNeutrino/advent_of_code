@@ -1,8 +1,7 @@
 use std::{
     env::{Args, args},
     fs::{File, copy},
-    io::{BufRead, BufReader, Lines, Read, Seek},
-    os::unix::fs::FileExt,
+    io::{BufRead, BufReader, Lines, Read},
     path::Path,
 };
 
@@ -42,7 +41,8 @@ fn linear2coords(pos: usize, row_len: usize) -> (usize, usize) {
     return (row, col);
 }
 
-fn coords2linear(row_len: usize, row: usize, col: usize) -> usize {
+fn coords2linear(row_len: usize, pos: (usize, usize)) -> usize {
+    let (row, col): (usize, usize) = pos;
     return row * row_len + col;
 }
 
@@ -62,9 +62,21 @@ fn find_beams(file_string: &String, row_len: usize) -> Vec<(usize, usize)> {
     return beams;
 }
 
-fn put_beam(out: &mut String, splitter_pos: (usize, usize), row_len: usize) {
-    let beam_pos: usize = coords2linear(row_len, splitter_pos.0 + 1, splitter_pos.1);
+fn split_beam(splitter_pos: (usize, usize)) -> ((usize, usize), (usize, usize)) {
+    let row: usize = splitter_pos.0 + 1;
+    let cols: (usize, usize) = (splitter_pos.1 - 1, splitter_pos.1 + 1);
+    return ((row, cols.0), (row, cols.1));
+}
+
+fn put_beam(out: &mut String, pos: (usize, usize), row_len: usize) {
+    let beam_pos: usize = coords2linear(row_len, pos);
     out.replace_range(beam_pos..(beam_pos + 1), "|");
+}
+
+fn split_put_beams(out: &mut String, splitter_pos: (usize, usize), row_len: usize) {
+    let (left_beam, right_beam): ((usize, usize), (usize, usize)) = split_beam(splitter_pos);
+    put_beam(out, left_beam, row_len);
+    put_beam(out, right_beam, row_len);
     return;
 }
 
@@ -80,13 +92,13 @@ fn main() {
     println!("source at = {source_pos:?}");
 
     let splitters: Vec<(usize, usize)> = find_splitters(&out_buff, row_len);
-    println!("splitters at {splitters:?}");
+    // println!("splitters at {splitters:?}");
 
     put_beam(&mut out_buff, source_pos, row_len);
     println!("{out_buff}");
 
     let beams: Vec<(usize, usize)> = find_beams(&mut out_buff, row_len);
-    println!("beams = {beams:?}")
+    // println!("beams = {beams:?}")
 
     // let lineterator: Lines<BufReader<File>> = parse_input();
     // for (row, line_res) in lineterator.enumerate() {
