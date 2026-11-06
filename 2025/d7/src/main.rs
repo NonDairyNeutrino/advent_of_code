@@ -1,19 +1,9 @@
 use std::{
     env::{Args, args},
     fs::{File, copy},
-    io::{BufRead, BufReader, Lines, Read},
+    io::Read,
     path::Path,
 };
-
-fn parse_input() -> Lines<BufReader<File>> {
-    let mut args: Args = args();
-    args.next();
-    let path_string: String = args.next().expect("AAAAAAAAA");
-    let path: &Path = Path::new(&path_string);
-    let file: File = File::open(path).unwrap();
-    let lineterator: Lines<BufReader<File>> = BufReader::new(file).lines();
-    return lineterator;
-}
 
 fn create_out() -> File {
     let mut args: Args = args();
@@ -68,51 +58,77 @@ fn split_beam(splitter_pos: (usize, usize)) -> ((usize, usize), (usize, usize)) 
     return ((row, cols.0), (row, cols.1));
 }
 
-fn put_beam(out: &mut String, pos: (usize, usize), row_len: usize) {
-    let beam_pos: usize = coords2linear(row_len, pos);
-    out.replace_range(beam_pos..(beam_pos + 1), "|");
+fn extend_beam(beam_pos: (usize, usize)) -> (usize, usize) {
+    return (beam_pos.0 + 1, beam_pos.1);
 }
 
-fn split_put_beams(out: &mut String, splitter_pos: (usize, usize), row_len: usize) {
-    let (left_beam, right_beam): ((usize, usize), (usize, usize)) = split_beam(splitter_pos);
-    put_beam(out, left_beam, row_len);
-    put_beam(out, right_beam, row_len);
-    return;
+fn put_beam(out: &mut String, pos: (usize, usize), row_len: usize) {
+    let beam_pos: usize = coords2linear(row_len, pos);
+    if beam_pos < out.len() {
+        out.replace_range(beam_pos..(beam_pos + 1), "|");
+    }
+}
+
+fn will_split(splitters: &Vec<(usize, usize)>, beam_pos: (usize, usize)) -> bool {
+    splitters.contains(&(beam_pos.0 + 1, beam_pos.1))
+}
+
+fn split_beam_recursive(
+    out: &mut String,
+    row_len: usize,
+    splitters: &Vec<(usize, usize)>,
+    beams: &mut Vec<(usize, usize)>,
+) {
+    // let beams: Vec<(usize, usize)> = find_beams(&mut out, row_len);
+    let mut new_beams: Vec<(usize, usize)> = Vec::new();
+
+    for beam in beams.into_iter() {
+        if will_split(&splitters, *beam) {
+            let splitter: (usize, usize) = (beam.0 + 1, beam.1);
+            let (left_beam, right_beam): ((usize, usize), (usize, usize)) = split_beam(splitter);
+
+            new_beams.push(left_beam);
+            new_beams.push(right_beam);
+
+            put_beam(out, left_beam, row_len);
+            put_beam(out, right_beam, row_len);
+        } else {
+            let extended_beam: (usize, usize) = extend_beam(*beam);
+            if coords2linear(row_len, extended_beam) < out.len() {
+                new_beams.push(extended_beam);
+                put_beam(out, extended_beam, row_len);
+            }
+        }
+    }
+
+    if new_beams.is_empty() {
+        return;
+    } else {
+        split_beam_recursive(out, row_len, splitters, &mut new_beams);
+    }
 }
 
 fn main() {
     let mut out_file: File = create_out(); // create output.txt that's a copy of the input
     let mut out_buff: String = String::new();
     let _ = out_file.read_to_string(&mut out_buff);
+    println!("before");
     println!("{out_buff}");
     let row_len: usize = out_buff.find('\n').unwrap() + 1;
     // println!("Number of spaces = {row_len}");
 
     let source_pos: (usize, usize) = linear2coords(find_source(&out_buff), row_len);
-    println!("source at = {source_pos:?}");
+    // println!("source at = {source_pos:?}");
 
     let splitters: Vec<(usize, usize)> = find_splitters(&out_buff, row_len);
     // println!("splitters at {splitters:?}");
 
-    put_beam(&mut out_buff, source_pos, row_len);
+    put_beam(&mut out_buff, (source_pos.0 + 1, source_pos.1), row_len);
+    // println!("{out_buff}");
+
+    let mut beams: Vec<(usize, usize)> = find_beams(&mut out_buff, row_len);
+    // println!("beams = {beams:?}");
+    split_beam_recursive(&mut out_buff, row_len, &splitters, &mut beams);
+    println!("after");
     println!("{out_buff}");
-
-    let beams: Vec<(usize, usize)> = find_beams(&mut out_buff, row_len);
-    // println!("beams = {beams:?}")
-
-    // let lineterator: Lines<BufReader<File>> = parse_input();
-    // for (row, line_res) in lineterator.enumerate() {
-    //     let line: String = line_res.unwrap();
-    //     let pairs: Vec<(usize, &str)> = line.match_indices('^').collect();
-    //     if !pairs.is_empty() {
-    //         let cols: Vec<usize> = pairs.iter().map(|pair| pair.0).collect();
-    //         let splitters: (usize, &Vec<usize>) = (row, &cols);
-    //         println!("splitters = {splitters:?}");
-    //         let mut beams: Vec<usize> =
-    //             cols.iter().flat_map(|col| vec![col - 1, col + 1]).collect();
-    //         println!("beams = {beams:?}");
-    //         beams.dedup(); // beams is naturally sorted
-    //         println!("beams_dedup = {beams:?}")
-    //     }
-    // }
 }
