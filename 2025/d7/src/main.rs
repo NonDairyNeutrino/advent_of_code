@@ -69,8 +69,12 @@ fn put_beam(out: &mut String, pos: (usize, usize), row_len: usize) {
     }
 }
 
-fn will_split(splitters: &Vec<(usize, usize)>, beam_pos: (usize, usize)) -> bool {
-    splitters.contains(&(beam_pos.0 + 1, beam_pos.1))
+fn will_split(splitters: &Vec<(usize, usize)>, beam_pos: (usize, usize), acc: &mut u64) -> bool {
+    let will: bool = splitters.contains(&(beam_pos.0 + 1, beam_pos.1));
+    if will {
+        *acc += 1;
+    }
+    return will;
 }
 
 fn split_beam_recursive(
@@ -78,25 +82,33 @@ fn split_beam_recursive(
     row_len: usize,
     splitters: &Vec<(usize, usize)>,
     beams: &mut Vec<(usize, usize)>,
+    mut acc: &mut u64,
 ) {
     // let beams: Vec<(usize, usize)> = find_beams(&mut out, row_len);
     let mut new_beams: Vec<(usize, usize)> = Vec::new();
 
     for beam in beams.into_iter() {
-        if will_split(&splitters, *beam) {
+        if will_split(&splitters, *beam, &mut acc) {
             let splitter: (usize, usize) = (beam.0 + 1, beam.1);
             let (left_beam, right_beam): ((usize, usize), (usize, usize)) = split_beam(splitter);
+            println!("splitting {beam:?} into {left_beam:?} and {right_beam:?}; splits = {acc}");
 
-            new_beams.push(left_beam);
-            new_beams.push(right_beam);
-
-            put_beam(out, left_beam, row_len);
-            put_beam(out, right_beam, row_len);
+            if !new_beams.contains(&left_beam) {
+                new_beams.push(left_beam);
+                put_beam(out, left_beam, row_len);
+            }
+            if !new_beams.contains(&right_beam) {
+                new_beams.push(right_beam);
+                put_beam(out, right_beam, row_len);
+            }
         } else {
             let extended_beam: (usize, usize) = extend_beam(*beam);
             if coords2linear(row_len, extended_beam) < out.len() {
-                new_beams.push(extended_beam);
-                put_beam(out, extended_beam, row_len);
+                println!("extending {beam:?} to {extended_beam:?}");
+                if !new_beams.contains(&extended_beam) {
+                    new_beams.push(extended_beam);
+                    put_beam(out, extended_beam, row_len);
+                }
             }
         }
     }
@@ -104,7 +116,8 @@ fn split_beam_recursive(
     if new_beams.is_empty() {
         return;
     } else {
-        split_beam_recursive(out, row_len, splitters, &mut new_beams);
+        println!("new beams = {new_beams:?}");
+        split_beam_recursive(out, row_len, splitters, &mut new_beams, &mut acc);
     }
 }
 
@@ -128,7 +141,9 @@ fn main() {
 
     let mut beams: Vec<(usize, usize)> = find_beams(&mut out_buff, row_len);
     // println!("beams = {beams:?}");
-    split_beam_recursive(&mut out_buff, row_len, &splitters, &mut beams);
+    let mut acc: u64 = 0;
+    split_beam_recursive(&mut out_buff, row_len, &splitters, &mut beams, &mut acc);
     println!("after");
     println!("{out_buff}");
+    println!("beam split {acc} times")
 }
