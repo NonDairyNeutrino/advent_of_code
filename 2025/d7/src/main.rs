@@ -104,10 +104,14 @@ fn split_beam_recursive(
         } else {
             let extended_beam: (usize, usize) = extend_beam(*beam);
             if coords2linear(row_len, extended_beam) < out.len() {
-                println!("extending {beam:?} to {extended_beam:?}");
-                if !new_beams.contains(&extended_beam) {
-                    new_beams.push(extended_beam);
-                    put_beam(out, extended_beam, row_len);
+                put_beam(out, extended_beam, row_len);
+                let extended_extended_beam: (usize, usize) = extend_beam(extended_beam);
+                // println!("extending {beam:?} to {extended_beam:?}");
+                if !new_beams.contains(&extended_extended_beam)
+                    && coords2linear(row_len, extended_extended_beam) < out.len()
+                {
+                    new_beams.push(extended_extended_beam);
+                    put_beam(out, extended_extended_beam, row_len);
                 }
             }
         }
