@@ -40,9 +40,10 @@ impl fmt::Display for Connection {
     }
 }
 
-struct _Circuit {
+struct Circuit {
     boxes: Vec<JuncBox>,
 }
+impl Circuit {}
 
 fn parse_input() -> Vec<JuncBox> {
     let args: Vec<String> = args().collect();
@@ -79,7 +80,7 @@ fn compare_edge_distances(edge0: &Connection, edge1: &Connection) -> std::cmp::O
     return comp;
 }
 
-fn make_conns(jboxs: Vec<JuncBox>) -> Vec<Connection> {
+fn make_conns(jboxs: &Vec<JuncBox>) -> Vec<Connection> {
     let mut conns: Vec<Connection> = Vec::with_capacity(jboxs.len().pow(2));
     for p1 in jboxs.as_slice() {
         for p2 in jboxs.as_slice() {
@@ -102,12 +103,40 @@ fn sort_conns(conns: &mut Vec<Connection>) -> &Vec<Connection> {
     return conns;
 }
 
+fn find_spanning_tree(jbox: JuncBox) -> Vec<bool> {
+    // proceed depth-first search
+}
+
 fn main() {
     let jboxs: Vec<JuncBox> = parse_input();
-    let mut conns: Vec<Connection> = make_conns(jboxs);
+    let mut conns: Vec<Connection> = make_conns(&jboxs);
     sort_conns(&mut conns);
 
-    for conn in conns {
-        println!("{conn}")
+    // start from one big graph
+    // pick a point
+    // find the minimum spanning tree using that point as the root
+    // then pick a point not in that tree, and find the tree
+    //
+    // create the graph
+    let mut graph: Vec<Vec<bool>> = Vec::with_capacity(jboxs.len());
+    for _ in jboxs.as_slice() {
+        let mut row: Vec<bool> = Vec::with_capacity(jboxs.len());
+        for _ in jboxs.as_slice() {
+            row.push(false);
+        }
+        graph.push(row);
     }
+
+    // populate the graph
+    let limit: usize = 10;
+    for con in conns.iter().take(limit) {
+        let row: usize = con.a.id;
+        let col: usize = con.b.id;
+        graph[row][col] = true;
+    }
+    println!("{graph:?}")
+
+    // for conn in conns {
+    //     println!("{conn}")
+    // }
 }
