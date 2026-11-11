@@ -22,26 +22,6 @@ impl Point {
         let dist: f64 = (xdiff.powi(2) + ydiff.powi(2) + zdiff.powi(2)).sqrt();
         return dist;
     }
-
-    fn is_connected(self, p: &Point, dmat: &Vec<Vec<f64>>) -> bool {
-        if self.id == p.id {
-            return false;
-        }
-        // A point B is connected to a point A, where A != B, if the distance between
-        // B and A is less than the distance between any other point and A.
-        // In other words, if there exists a distance between any two points that is greater
-        // than the distance between A and B, A and B are not connected.
-        let maybe: f64 = dmat[self.id][p.id];
-        // now maybe is guarenteed to not be zero
-        for row in dmat {
-            for dist in row {
-                if *dist > maybe {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
 }
 impl fmt::Display for Point {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -77,31 +57,31 @@ fn parse_input() -> Vec<Point> {
     return boxes;
 }
 
-fn get_distance_matrix(points: &[Point]) -> Vec<Vec<f64>> {
-    points
-        .iter()
-        .map(|p1| points.iter().map(|p2| p1.distance(&p2)).collect())
-        .collect()
+fn compare_edge_distances(edge0: &(Point, Point), edge1: &(Point, Point)) -> std::cmp::Ordering {
+    let (p00, p01): &(Point, Point) = edge0;
+    let (p10, p11): &(Point, Point) = edge1;
+
+    let p0_dist: f64 = p00.distance(&p01);
+    let p1_dist: f64 = p10.distance(&p11);
+
+    let comp = p0_dist.total_cmp(&p1_dist);
+    return comp;
 }
 
 fn main() {
     let points: Vec<Point> = parse_input();
-    let dmat: Vec<Vec<f64>> = get_distance_matrix(&points);
 
-    // for p1 in points.as_slice() {
-    //     for p2 in points.as_slice() {
-    //         if p1.is_connected(&p2, &dmat) {
-    //             println!(
-    //                 "{p1} is connected to {p2} with distance {}",
-    //                 dmat[p1.id][p2.id]
-    //             )
-    //         }
-    //     }
-    // }
-    // println!(
-    //     "The real lowest distance is between {} and {} and is {}",
-    //     points[0],
-    //     points.last().unwrap(),
-    //     dmat[points[0].id][points.last().unwrap().id]
-    // )
+    let mut pairs: Vec<(Point, Point)> = Vec::with_capacity(points.len().pow(2));
+    for p1 in points.as_slice() {
+        for p2 in points.as_slice() {
+            if p1.id != p2.id {
+                pairs.push((*p1, *p2));
+            }
+        }
+    }
+    pairs.sort_by(|edge0, edge1| compare_edge_distances(edge0, edge1));
+    pairs.dedup_by(|p0, p1| (p0.0.id, p0.1.id) == (p1.1.id, p1.0.id));
+    for pair in pairs {
+        println!("({}, {}) -> {}", pair.0, pair.1, pair.0.distance(&pair.1))
+    }
 }
