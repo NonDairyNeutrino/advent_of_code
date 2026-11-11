@@ -7,15 +7,15 @@ use std::{
 };
 
 #[derive(Debug, Clone, Copy)]
-struct Point {
+struct JuncBox {
     id: usize,
     x: f64,
     y: f64,
     z: f64,
 }
 
-impl Point {
-    fn distance(self, p: &Point) -> f64 {
+impl JuncBox {
+    fn distance(self, p: &JuncBox) -> f64 {
         let xdiff: f64 = self.x - p.x;
         let ydiff: f64 = self.y - p.y;
         let zdiff: f64 = self.z - p.z;
@@ -23,43 +23,54 @@ impl Point {
         return dist;
     }
 }
-impl fmt::Display for Point {
+impl fmt::Display for JuncBox {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "({}, {}, {})", self.x, self.y, self.z)
     }
 }
 
-struct _Circuit {
-    boxes: Vec<Point>,
+struct Connection {
+    a: JuncBox,
+    b: JuncBox,
+    dist: f64,
+}
+impl fmt::Display for Connection {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "({}, {}) -> {}", self.a, self.b, self.dist)
+    }
 }
 
-fn parse_input() -> Vec<Point> {
+struct _Circuit {
+    boxes: Vec<JuncBox>,
+}
+
+fn parse_input() -> Vec<JuncBox> {
     let args: Vec<String> = args().collect();
     let path: &Path = Path::new(&args[1]);
     let file: File = File::open(path).unwrap();
     let lineterator: Lines<BufReader<File>> = BufReader::new(file).lines();
 
-    let mut boxes: Vec<Point> = Vec::new();
+    let mut boxes: Vec<JuncBox> = Vec::new();
     for (id, line) in lineterator.enumerate() {
-        let pointv: Vec<f64> = line
+        let jboxv: Vec<f64> = line
             .unwrap()
             .split(',')
             .map(|dim| dim.parse::<f64>().unwrap())
             .collect();
-        let point: Point = Point {
+        let jbox: JuncBox = JuncBox {
             id: id,
-            x: pointv[0],
-            y: pointv[1],
-            z: pointv[2],
+            x: jboxv[0],
+            y: jboxv[1],
+            z: jboxv[2],
         };
-        boxes.push(point);
+        boxes.push(jbox);
     }
     return boxes;
 }
 
-fn compare_edge_distances(edge0: &(Point, Point), edge1: &(Point, Point)) -> std::cmp::Ordering {
-    let (p00, p01): &(Point, Point) = edge0;
-    let (p10, p11): &(Point, Point) = edge1;
+fn compare_edge_distances(edge0: &Connection, edge1: &Connection) -> std::cmp::Ordering {
+    let (p00, p01): (JuncBox, JuncBox) = (edge0.a, edge0.b);
+    let (p10, p11): (JuncBox, JuncBox) = (edge1.a, edge1.b);
 
     let p0_dist: f64 = p00.distance(&p01);
     let p1_dist: f64 = p10.distance(&p11);
@@ -68,20 +79,35 @@ fn compare_edge_distances(edge0: &(Point, Point), edge1: &(Point, Point)) -> std
     return comp;
 }
 
-fn main() {
-    let points: Vec<Point> = parse_input();
-
-    let mut pairs: Vec<(Point, Point)> = Vec::with_capacity(points.len().pow(2));
-    for p1 in points.as_slice() {
-        for p2 in points.as_slice() {
+fn make_conns(jboxs: Vec<JuncBox>) -> Vec<Connection> {
+    let mut conns: Vec<Connection> = Vec::with_capacity(jboxs.len().pow(2));
+    for p1 in jboxs.as_slice() {
+        for p2 in jboxs.as_slice() {
             if p1.id != p2.id {
-                pairs.push((*p1, *p2));
+                let con: Connection = Connection {
+                    a: *p1,
+                    b: *p2,
+                    dist: p1.distance(p2),
+                };
+                conns.push(con);
             }
         }
     }
-    pairs.sort_by(|edge0, edge1| compare_edge_distances(edge0, edge1));
-    pairs.dedup_by(|p0, p1| (p0.0.id, p0.1.id) == (p1.1.id, p1.0.id));
-    for pair in pairs {
-        println!("({}, {}) -> {}", pair.0, pair.1, pair.0.distance(&pair.1))
+    return conns;
+}
+
+fn sort_conns(conns: &mut Vec<Connection>) -> &Vec<Connection> {
+    conns.sort_by(|edge0, edge1| compare_edge_distances(edge0, edge1));
+    conns.dedup_by(|p0, p1| (p0.a.id, p0.b.id) == (p1.b.id, p1.a.id));
+    return conns;
+}
+
+fn main() {
+    let jboxs: Vec<JuncBox> = parse_input();
+    let mut conns: Vec<Connection> = make_conns(jboxs);
+    sort_conns(&mut conns);
+
+    for conn in conns {
+        println!("{conn}")
     }
 }
