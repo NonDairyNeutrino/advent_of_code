@@ -40,11 +40,6 @@ impl fmt::Display for Connection {
     }
 }
 
-struct Circuit {
-    boxes: Vec<JuncBox>,
-}
-impl Circuit {}
-
 fn parse_input() -> Vec<JuncBox> {
     let args: Vec<String> = args().collect();
     let path: &Path = Path::new(&args[1]);
@@ -103,8 +98,14 @@ fn sort_conns(conns: &mut Vec<Connection>) -> &Vec<Connection> {
     return conns;
 }
 
-fn find_spanning_tree(jbox: JuncBox) -> Vec<bool> {
-    // proceed depth-first search
+fn find_component(graph: &Vec<Vec<bool>>, root_id: usize, comp: &mut Vec<usize>) {
+    // proceed via depth-first search
+    for (id, edge) in graph[root_id].iter().enumerate() {
+        if *edge {
+            comp.push(id);
+            find_component(graph, id, comp)
+        }
+    }
 }
 
 fn main() {
@@ -134,9 +135,10 @@ fn main() {
         let col: usize = con.b.id;
         graph[row][col] = true;
     }
-    println!("{graph:?}")
 
-    // for conn in conns {
-    //     println!("{conn}")
-    // }
+    for id in 0..graph.len() {
+        let mut comp: Vec<usize> = Vec::new();
+        find_component(&graph, id, &mut comp);
+        println!("{comp:?}")
+    }
 }
