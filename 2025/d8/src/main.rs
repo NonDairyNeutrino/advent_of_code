@@ -101,7 +101,8 @@ fn sort_conns(conns: &mut Vec<Connection>) -> &Vec<Connection> {
 fn find_component(graph: &Vec<Vec<bool>>, root_id: usize, comp: &mut Vec<usize>) {
     // proceed via depth-first search
     for (id, edge) in graph[root_id].iter().enumerate() {
-        if *edge {
+        if *edge && !(comp.contains(&id)) {
+            // don't explore edges that have alrady been explored
             comp.push(id);
             find_component(graph, id, comp)
         }
@@ -134,10 +135,12 @@ fn main() {
         let row: usize = con.a.id;
         let col: usize = con.b.id;
         graph[row][col] = true;
+        graph[col][row] = true;
     }
 
     for id in 0..graph.len() {
         let mut comp: Vec<usize> = Vec::new();
+        comp.push(id);
         find_component(&graph, id, &mut comp);
         println!("{comp:?}")
     }
